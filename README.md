@@ -97,6 +97,8 @@ You'll typically need these functions:
 - `evaluation.check_solution()`: to check if constraints are violated.
 - `plot.plot_solution()`: to visualize your solution.
 
+<img src="flow.png" width="500px"/>
+
 If you follow the modular design and naming conventions from the architecture section, your new use cases will plug right into the existing execution pipeline without any difficulty.
 
 
