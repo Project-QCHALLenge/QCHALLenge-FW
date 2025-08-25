@@ -1,48 +1,114 @@
-# software-framework
+# QCHALLenge-FW
 
-AK4 software framework 
+**A software framework for facilitated quantum modelling of industry use cases**
 
-### install
+---
 
-```conda create -n qcframework python==3.11```
+### Installation Methods
 
-for each use case do:
+#### 🔹 Full Installation
 
-```cd {use case folder}```
+You can use a package manager of your choice.
+We recommend creating a virtual environment, such as Anaconda.
+This will install all dependencies at once:
 
-and then do
-
-```pip install -r requirements.txt```
-
-use
-
-```cd ../```
-
-to go back into the root folder.
-
-### Execute examples
-
-```python examples/pas_example_cplex.py```
-
-### create your own code
-
-```python installer.py``
-
-Select the use cases you want to use.
-Click install selected use cases.
-
-Then you can write:
-
-```
-from framework_config import model_classes
+```bash
+conda create -n qcframework python==3.11
+pip install -r all_requirements.txt
 ```
 
-and use these clases to create your own examples
+---
 
-## License
+#### 🔹 Selective Installation
 
-This project is licensed under the [Apache License 2.0](LICENSE.txt). In order to use parts of the code presented in a non-production environment, additional [Gurobi](https://pypi.org/project/gurobipy/) and [CPLEX](https://pypi.org/project/cplex/) licenses are required. Please read the license statements carefully before using or distributing the code.
+Launch the interactive installer:
 
-## Funding
-<a href="https://www.bmwk.de/"><img src="logoBMWK.svg" height="150px" /></a>
+```bash
+python installer.py
+```
+
+Select the use cases you want to install, then click **Install Selected Use Cases** and close the installer window.
+
+This will create an python environment  `venv`, containing all required packages.
+
+---
+
+
+#### 🔹 Sequential Installation *(Optionally, if the versions above don’t work)*
+
+Install the use cases manually one by one:
+
+```bash
+conda create -n qcframework-{use-case} python==3.11
+```
+
+Then for each use case:
+
+```bash
+cd {use-case folder}
+pip install -r requirements.txt
+cd ../  # return to root folder
+```
+
+---
+
+### Execute Examples
+
+In the `examples` folder, you’ll find Python files containing example scripts, named with the pattern `{use-case}_example`.
+
+To run an example, use a command like:
+
+```bash
+python examples/pas_example_cplex.py
+```
+
+Each example illustrates the complete workflow: generating data, building the model, solving it, and visualizing the solution.
+
+---
+### Use the QCHALLenge Framework for Your Own Projects
+
+You can import the framework into your custom Python projects:
+
+```python
+from qchallenge_framework import QCHALLengeFramework
+```
+
+and setting the path variables correctly. Use
+
+```python
+qc_fw = QCHALLengeFramework()
+qc_fw.get_use_case_names()
+```
+
+to invoke the framework and learn about the pre-installed use cases.
+
+---
+
+### Contribute with Your Own Use Cases
+
+1. It is important to follow the same structure as the existing use cases.
+For a detailed explanation, carefully read documents/documentation.pdf.
+In Section 5.4, there is a list of classes and functions that are mandatory.
+
+2. Once you have added all classes and functions, you can start installer.py.
+There, click on Add New Use Case.
+Make sure every single letter is correct. For model classes, only use a comma without a space between the classes.
+
+3. Select all use cases and click Install.
+
+---
+
+### License
+
+This project is licensed under the [Apache License 2.0](LICENSE.txt).  
+To use parts of the code in a non-production environment, additional [Gurobi](https://pypi.org/project/gurobipy/) and [CPLEX](https://pypi.org/project/cplex/) licenses are required.  
+Please read the license statements carefully before using or distributing the code.
+
+---
+
+### Funding
+QCHALLenge is supported by:
+
+<a href="https://www.bmftr.bund.de/"><img src="logoBMFTR.svg" height="70px" /></a>
+
 
