@@ -86,9 +86,19 @@ to invoke the framework and learn about the pre-installed use cases.
 
 ### Contribute with Your Own Use Cases
 
-1. It is important to follow the same structure as the existing use cases.
-For a detailed explanation, carefully read documents/documentation.pdf.
-In Section 5.4, there is a list of classes and functions that are mandatory.
+1. Adding New Use Cases
+
+When you want to add a new use case, we recommend starting with one of the existing examples as a template.  
+You'll typically need these functions:
+
+- `data.gen_problem()`: to create a new problem instance.
+- `model.solve()`: to solve your problem.
+- `evaluation.get_objective()`: to get the objective value.
+- `evaluation.check_solution()`: to check if constraints are violated.
+- `plot.plot_solution()`: to visualize your solution.
+
+If you follow the modular design and naming conventions from the architecture section, your new use cases will plug right into the existing execution pipeline without any difficulty.
+
 
 2. Once you have added all classes and functions, you can start installer.py.
 There, click on Add New Use Case.
