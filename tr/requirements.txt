@@ -1,0 +1,10 @@
+cplex >=20.1
+docplex>=2.23
+seaborn >=0.13
+gurobipy>=10.0,<12
+networkx >=2.8
+matplotlib >=3.5
+ipywidgets >=8.0
+dwave-neal>=0.5.0
+dwave-ocean-sdk >=5.0
+qiskit-optimization >=0.5

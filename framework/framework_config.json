@@ -1,0 +1,115 @@
+{
+    "use_cases": [
+        {
+            "name": "Production Assignment",
+            "shortcut": "PAS",
+            "folder": "pas",
+            "dataclass": "PASData",
+            "models": [
+                "PASCplex",
+                "PASDecomposition",
+                "PASGurobi",
+                "PASGurobiConvex",
+                "PASQubo"
+            ],
+            "evaluationclass": "PASEvaluation",
+            "plotclass": "PASPlot",
+            "requirements": "requirements.txt"
+        },
+        {
+            "name": "Auto Carrier Loading",
+            "shortcut": "ACL",
+            "folder": "acl",
+            "dataclass": "ACLData",
+            "models": [
+                "ACLCplex",
+                "ACLGurobi",
+                "ACLCplexQuadratic"
+            ],
+            "evaluationclass": "ACLEvaluation",
+            "plotclass": "ACLPlot",
+            "requirements": "requirements.txt"
+        },
+        {
+            "name": "MoProLog",
+            "shortcut": "MPL",
+            "folder": "mpl",
+            "dataclass": "MPLData",
+            "models": [
+                "MPLCQMNoWaitOverlap",
+                "MPLCQMNoWaitNoOverlap",
+                "MPLGurobiNoWaitNoOverlapReduced",
+                "MPLGurobiNoWaitNoOverlap",
+                "MPLGurobiNoWaitOverlapReduced",
+                "MPLGurobiNoWaitOverlap",
+                "MPLGurobiWaitOverlap"
+            ],
+            "evaluationclass": "MPLEvaluation",
+            "plotclass": "MPLPlot",
+            "requirements": "requirements.txt"
+        },
+        {
+            "name": "Sensor Positioning",
+            "shortcut": "SP",
+            "folder": "sp",
+            "dataclass": "SPData",
+            "models": [
+                "SPCplex",
+                "SPGrover",
+                "SPGurobi",
+                "SPHeuristic",
+                "SPQaoa",
+                "SPQaoansatz",
+                "SPQuboBinary",
+                "SPQuboOnehot",
+                "SPScip"
+            ],
+            "evaluationclass": "SPEvaluation",
+            "plotclass": "SPPlot",
+            "requirements": "requirements.txt"
+        },
+        {
+            "name": "Train Routing",
+            "shortcut": "TR",
+            "folder": "tr",
+            "dataclass": "TRData",
+            "models": [
+                "TRCplex"
+            ],
+            "evaluationclass": "TREvaluation",
+            "plotclass": "TRPlot",
+            "requirements": "requirements.txt"
+        },
+        {
+            "name": "Truck Loading",
+            "shortcut": "TL",
+            "folder": "tl",
+            "dataclass": "TLData",
+            "models": [
+                "TLCplex",
+                "TLGurobi",
+                "TLQubo",
+                "TLDanzigWolfe",
+                "TLScip"
+            ],
+            "evaluationclass": "TLEvaluation",
+            "plotclass": "TLPlot",
+            "requirements": "requirements.txt"
+        },
+                {
+            "name": "Load Balancing",
+            "shortcut": "LB",
+            "folder": "lb",
+            "dataclass": "LBData",
+            "models": [
+                "LBDWAVECQMUnaryUniformTruckCapacity",
+                "LBDWAVECQMUnaryUniformTruckCapacity",
+                "LBGurobiQUBOUnaryUniformTruckCapacity",
+                "LBGurobiCQMUnaryUniformTruckCapacity"
+            ],
+            "evaluationclass": "LBEvaluation",
+            "plotclass": "LBPlot",
+            "requirements": "requirements.txt"
+        }
+    ]
+}

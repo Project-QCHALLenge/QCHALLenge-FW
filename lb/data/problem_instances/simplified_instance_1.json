@@ -1,0 +1,41 @@
+{
+  "number_of_trucks" : 4 ,
+  "products" : [
+    {
+      "quantity" : 9 ,
+      "weight" : 24
+    } ,
+    {
+      "quantity" : 6 ,
+      "weight" : 28
+    } ,
+    {
+      "quantity" : 4 ,
+      "weight" : 40
+    } ,
+    {
+      "quantity" : 4 ,
+      "weight" : 30
+    } ,
+    {
+      "quantity" : 9 ,
+      "weight" : 76
+    } ,
+    {
+      "quantity" : 6 ,
+      "weight" : 568
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 142
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 972
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 35
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+numpy>=1.24.4
+pandas>=2.0.3
+gurobipy>=10.0
+pyscipopt>=4.4.0
+docplex>=2.27.239
+matplotlib>=3.7.5
+dwave-ocean-sdk >=5.0
+qiskit-optimization >=0.5
+pygcgopt >= 0.4.0

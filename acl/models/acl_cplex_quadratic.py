@@ -1,0 +1,1247 @@
+import itertools
+import numpy as np
+
+from docplex.mp.model import Model as CplexModel
+from enum import Enum
+
+import time
+
+from acl.data.acl_data import ACLData
+
+
+class Sense(Enum):
+    Min = "min"
+    Max = "max"
+
+
+class CplexQuadACL(CplexModel):
+    """
+    Class to create a Cplex model, with maximally quadratic temrs, for the Autocarrier Loading Problem
+
+    ***This class does not contain the direction variable***
+    """
+
+    def __init__(self, data: ACLData, d_var_exists=True, old_sack_var=False):
+        """
+        Initialize the Quad_CplexACL class with ACLData.
+
+        Parameters:
+        - data (ACLData): Input data for the model. data includes, truck and vehicle parameters.
+        """
+
+        self.data: ACLData = data
+
+        self.d_var_exists = d_var_exists
+        self.old_sack_var = old_sack_var
+
+        # define decision parameter indices and initialise the cplex model
+        self.__allowed_variables = self.allowed_variables()
+        self.__model = CplexModel(name="ACL_quad")
+
+        # define all decision variables of the model
+        self.__x_variables = self.__model.binary_var_dict(
+            keys=self.__allowed_variables["x"], name="x"
+        )
+        self.__a_variables = self.__model.binary_var_dict(
+            keys=self.__allowed_variables["a"], name="a"
+        )
+        self.__sp_variables = self.__model.binary_var_dict(
+            keys=self.__allowed_variables["sp"], name="sp"
+        )
+
+        if self.d_var_exists and self.old_sack_var:
+            self.__d_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["d"], name="d"
+            )
+
+            # d-d linear terms
+            self.__d00_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d00"
+            )
+            self.__d01_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d01"
+            )
+            self.__d10_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d10"
+            )
+            self.__d11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d11"
+            )
+            # a-x linear terms
+            self.__ax00_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax00"
+            )
+            self.__ax01_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax01"
+            )
+            self.__ax10_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax10"
+            )
+            self.__ax11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax11"
+            )
+            self.__variables = {
+                "x_variables": self.__x_variables,
+                "a_variables": self.__a_variables,
+                "sp_variables": self.__sp_variables,
+                "d_variables": self.__d_variables,
+                "d00_variables": self.__d00_variables,
+                "d01_variables": self.__d01_variables,
+                "d10_variables": self.__d10_variables,
+                "d11_variables": self.__d11_variables,
+                "ax00_variables": self.__ax00_variables,
+                "ax01_variables": self.__ax01_variables,
+                "ax10_variables": self.__ax10_variables,
+                "ax11_variables": self.__ax11_variables,
+            }
+
+        elif self.d_var_exists and not self.old_sack_var:
+            self.__d_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["d"], name="d"
+            )
+
+            # d-d linear terms
+            self.__d00_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d00"
+            )
+            self.__d01_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d01"
+            )
+            self.__d10_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d10"
+            )
+            self.__d11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["dd"], name="d11"
+            )
+            # a-x linear terms
+            self.__ax11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax11"
+            )
+            self.__variables = {
+                "x_variables": self.__x_variables,
+                "a_variables": self.__a_variables,
+                "sp_variables": self.__sp_variables,
+                "d_variables": self.__d_variables,
+                "d00_variables": self.__d00_variables,
+                "d01_variables": self.__d01_variables,
+                "d10_variables": self.__d10_variables,
+                "d11_variables": self.__d11_variables,
+                "ax11_variables": self.__ax11_variables,
+            }
+        elif not self.d_var_exists and self.old_sack_var:
+            # a-x linear terms
+            self.__ax00_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax00"
+            )
+            self.__ax01_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax01"
+            )
+            self.__ax10_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax10"
+            )
+            self.__ax11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax11"
+            )
+            self.__variables = {
+                "x_variables": self.__x_variables,
+                "a_variables": self.__a_variables,
+                "sp_variables": self.__sp_variables,
+                "ax00_variables": self.__ax00_variables,
+                "ax01_variables": self.__ax01_variables,
+                "ax10_variables": self.__ax10_variables,
+                "ax11_variables": self.__ax11_variables,
+            }
+
+        elif not self.d_var_exists and not self.old_sack_var:
+            # a-x linear terms
+            self.__ax11_variables = self.__model.binary_var_dict(
+                keys=self.__allowed_variables["ax"], name="ax11"
+            )
+            self.__variables = {
+                "x_variables": self.__x_variables,
+                "a_variables": self.__a_variables,
+                "sp_variables": self.__sp_variables,
+                "ax11_variables": self.__ax11_variables,
+            }
+
+        self.build_model()
+
+    def build_model(self):
+        """
+        Build the model
+        """
+        # objective function
+        self.objective_function(variable=self.__x_variables)
+
+        if self.d_var_exists and self.old_sack_var:
+            self.dd_slack_variables(
+                d_variable=self.__d_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+
+            self.ax_slack_variables_old(
+                a_variables=self.__a_variables,
+                x_variables=self.__x_variables,
+                ax00_variables=self.__ax00_variables,
+                ax01_variables=self.__ax01_variables,
+                ax10_variables=self.__ax10_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+
+            # length constraint
+            self.length_constraints(
+                x_variables=self.__x_variables,
+                a_variables=self.__a_variables,
+                sp_variables=self.__sp_variables,
+                ax11_variables=self.__ax11_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+            # height constraint
+            self.height_constraint(
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+
+        elif self.d_var_exists and not self.old_sack_var:
+            self.dd_slack_variables(
+                d_variable=self.__d_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+
+            self.ax_slack_variables(
+                a_variables=self.__a_variables,
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+
+            # length constraint
+            self.length_constraints(
+                x_variables=self.__x_variables,
+                a_variables=self.__a_variables,
+                sp_variables=self.__sp_variables,
+                ax11_variables=self.__ax11_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+            # height constraint
+            self.height_constraint(
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+                d00_variables=self.__d00_variables,
+                d01_variables=self.__d01_variables,
+                d10_variables=self.__d10_variables,
+                d11_variables=self.__d11_variables,
+            )
+
+        elif not self.d_var_exists and self.old_sack_var:
+            self.ax_slack_variables_old(
+                a_variables=self.__a_variables,
+                x_variables=self.__x_variables,
+                ax00_variables=self.__ax00_variables,
+                ax01_variables=self.__ax01_variables,
+                ax10_variables=self.__ax10_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+            # length constraint
+            self.length_constraints_no_d(
+                x_variables=self.__x_variables,
+                a_variables=self.__a_variables,
+                sp_variables=self.__sp_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+            # height constraint
+            self.height_constraint_no_d(
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+
+        elif not self.d_var_exists and not self.old_sack_var:
+            self.ax_slack_variables(
+                a_variables=self.__a_variables,
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+            # length constraint
+            self.length_constraints_no_d(
+                x_variables=self.__x_variables,
+                a_variables=self.__a_variables,
+                sp_variables=self.__sp_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+            # height constraint
+            self.height_constraint_no_d(
+                x_variables=self.__x_variables,
+                ax11_variables=self.__ax11_variables,
+            )
+
+        # assignement constraints
+        self.assignment_constraints(
+            x_variables=self.__x_variables, sp_variables=self.__sp_variables
+        )
+
+        # weight constraint
+        self.weight_constraints(
+            x_variables=self.__x_variables,
+            sp_variables=self.__sp_variables,
+            a_variables=self.__a_variables,
+            ax11_variables=self.__ax11_variables,
+        )
+
+    # no qubo solve as only the linear model can be transformed to a qubo
+    def solve(self, **config):
+
+        """
+            Solve function, which firstly solves the optimisation problem and returns the solution.
+
+            Returns: tuple(variable names), dict(variable names: dict(solution of variable))
+        """
+        TimeLimit = config.get("TimeLimit", 1)
+        self.model.set_time_limit(TimeLimit)
+
+        start_time = time.time()
+        self.__model.solve()
+        runtime = time.time() - start_time
+
+        solution = {var.name: var.solution_value for var in self.__model.iter_variables()}
+
+        return {"solution": solution, "runtime": runtime}
+
+
+    def get_default_lagrange_multiplier(self, multiplicative_factor=1):
+        """
+        Extracts the largest (linear) bias of the model, since the objective function does not have quadratic terms, in
+        order to find the default lagrange multiplier which is 10*max(bias)
+        """
+        objective = self.__model.get_objective_expr()
+
+        linear_biases = [
+            objective.get_coef(var) for var in self.__model.iter_variables()
+        ]
+        return 10 * max(linear_biases) * multiplicative_factor
+
+    def objective_function(self, variable, build=True):
+        """
+        Define objective function.
+        Returns: the objective value if build=False and sets the maximisation objective for self.__moedel if build=True
+        """
+        obj_func = sum(
+            [
+                variable[(k, p)]
+                for (k, p) in itertools.product(
+                    range(self.data.K), range(len(self.data.P))
+                )
+            ]
+        )
+        if build:
+            self.__model.set_objective(sense=Sense.Max.value, expr=obj_func)
+        else:
+            return obj_func
+
+    def dd_slack_variables(
+        self,
+        d_variable,
+        d00_variables,
+        d01_variables,
+        d10_variables,
+        d11_variables,
+        build=True,
+    ):
+        """
+        Define dd slack variables
+
+        The slack variable:
+        d00[idx_p]==1 if d[p]==0 and d[nu_p]==0 (the neighbouring car)
+        d01[idx_p]==1 if d[p]==0 and d[nu_p]==1 (the neighbouring car)
+        d10[idx_p]==1 if d[p]==1 and d[nu_p]==0 (the neighbouring car)
+        d11[idx_p]==1 if d[p]==1 and d[nu_p]==1 (the neighbouring car)
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+        equal_constr_dict = {}
+        for idx_p, p in enumerate(self.data.Pa):
+            constr_00 = (1 - d_variable[p]) + (1 - d_variable[self.data.Pa_nu[idx_p]])
+            constr_01 = (1 - d_variable[p]) + d_variable[self.data.Pa_nu[idx_p]]
+            constr_10 = d_variable[p] + (1 - d_variable[self.data.Pa_nu[idx_p]])
+            constr_11 = d_variable[p] + d_variable[self.data.Pa_nu[idx_p]]
+            total_dd = (
+                d00_variables[idx_p]
+                + d01_variables[idx_p]
+                + d10_variables[idx_p]
+                + d11_variables[idx_p]
+            )
+
+            constr_dict[f"dd_00_p{p}"] = (2 * d00_variables[idx_p], constr_00)
+            constr_dict[f"dd_01_p{p}"] = (2 * d01_variables[idx_p], constr_01)
+            constr_dict[f"dd_10_p{p}"] = (2 * d10_variables[idx_p], constr_10)
+            constr_dict[f"dd_11_p{p}"] = (2 * d11_variables[idx_p], constr_11)
+            # changed order of the tupel as in this inequality the inequaltiy is switched arond the opposite way
+            equal_constr_dict[f"dd=1_p{p}"] = (total_dd, 1)
+
+            if build:
+                self.__model.add_constraint(constr_00 >= 2 * d00_variables[idx_p])  # 00
+                self.__model.add_constraint(constr_01 >= 2 * d01_variables[idx_p])  # 01
+                self.__model.add_constraint(constr_10 >= 2 * d10_variables[idx_p])  # 10
+                self.__model.add_constraint(constr_11 >= 2 * d11_variables[idx_p])  # 11
+
+                self.__model.add_constraint(total_dd == 1)
+
+        if not build:
+            return constr_dict, equal_constr_dict
+
+    def ax_slack_variables(
+        self,
+        a_variables,
+        x_variables,
+        ax11_variables,
+        build=True,
+    ):
+        """
+        Define ax slack variables
+
+        The slack variable:
+        ax11[k,p]==1 if a[p]==1 and x[k,p]==1
+        ax11[k,p] >= x[k,p] + a[p] -1    enforces ax==1 if both are equal 1
+        ax11[k,p] <= x[k,p]              enforces ax==0 if x is equal 0
+        ax11[k,p] <= a[p]                enforces ax==0 if a is equal 0
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+
+        constr_dict = {}
+        equal_constr_dict = {}
+        for k, p in self.__allowed_variables["ax"]:
+            constr_11 = a_variables[p] + x_variables[(k, self.data.Pa[p])] - 1
+
+            constr_dict[f"new - ax_11_k,p-a{k, p}"] = (
+                ax11_variables[(k, p)],
+                a_variables[p],
+            )
+            constr_dict[f"new - ax_11_k,p-x{k, p}"] = (
+                ax11_variables[(k, p)],
+                x_variables[(k, self.data.Pa[p])],
+            )
+            constr_dict[f"new - ax_11_k,p{k, p}"] = (constr_11, ax11_variables[(k, p)])
+
+            if build:
+                self.__model.add_constraint(ax11_variables[(k, p)] >= constr_11)  # 11
+                self.__model.add_constraint(a_variables[p] >= ax11_variables[(k, p)])
+                self.__model.add_constraint(
+                    x_variables[(k, self.data.Pa[p])] >= ax11_variables[(k, p)]
+                )
+
+        if not build:
+            return constr_dict, equal_constr_dict
+
+    def ax_slack_variables_old(
+        self,
+        a_variables,
+        x_variables,
+        ax00_variables,
+        ax01_variables,
+        ax10_variables,
+        ax11_variables,
+        build=True,
+    ):
+        """
+        Define ax slack variables
+
+        The slack variable:
+        ax00[k,p]==1 if a[p]==0 and x[k,p]==0 (the neighbouring car)
+        ax01[k,p]==1 if a[p]==0 and x[k,p]==1 (the neighbouring car)
+        ax10[k,p]==1 if a[p]==1 and x[k,p]==0 (the neighbouring car)
+        ax11[k,p]==1 if a[p]==1 and x[k,p]==1 (the neighbouring car)
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+        equal_constr_dict = {}
+        for k, p in self.__allowed_variables["ax"]:
+            constr_00 = (1 - a_variables[p]) + (1 - x_variables[(k, self.data.Pa[p])])
+            constr_01 = (1 - a_variables[p]) + x_variables[(k, self.data.Pa[p])]
+            constr_10 = a_variables[p] + (1 - x_variables[(k, self.data.Pa[p])])
+            constr_11 = a_variables[p] + x_variables[(k, self.data.Pa[p])]
+            total_ax = (
+                ax00_variables[(k, p)]
+                + ax01_variables[(k, p)]
+                + ax10_variables[(k, p)]
+                + ax11_variables[(k, p)]
+            )
+            constr_dict[f"ax_00_k,p{k,p}"] = (2 * ax00_variables[(k, p)], constr_00)
+            constr_dict[f"ax_01_k,p{k,p}"] = (2 * ax01_variables[(k, p)], constr_01)
+            constr_dict[f"ax_10_k,p{k,p}"] = (2 * ax10_variables[(k, p)], constr_10)
+            constr_dict[f"ax_11_k,p{k,p}"] = (2 * ax11_variables[(k, p)], constr_11)
+            # changed order of tupel here same way as in the self.__length_constraints() method
+            equal_constr_dict[f"ax_11_k,p{k,p}"] = (total_ax, 1)
+
+            if build:
+                self.__model.add_constraint(
+                    constr_00 >= 2 * ax00_variables[(k, p)]
+                )  # 00
+                self.__model.add_constraint(
+                    constr_01 >= 2 * ax01_variables[(k, p)]
+                )  # 01
+                self.__model.add_constraint(
+                    constr_10 >= 2 * ax10_variables[(k, p)]
+                )  # 10
+                self.__model.add_constraint(
+                    constr_11 >= 2 * ax11_variables[(k, p)]
+                )  # 11
+
+                self.__model.add_constraint(total_ax == 1)
+
+        if not build:
+            return constr_dict, equal_constr_dict
+
+    def assignment_constraints(self, x_variables, sp_variables, build=True):
+        """
+        Assignment Constraints
+
+        Creates the assignment constraints for:
+        -one car per platform,
+        -one platform per car,
+        -one combination possible per platform (added by me) and
+        -only one car assigned to all platforms if combined
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+        # constraint 1
+        """Each platform have maximally one cars assigned to it"""
+        for p in self.data.P:
+            constr = sum(x_variables[(k, p)] for k in range(self.data.K))
+            if build:
+                self.__model.add_constraint(constr <= 1)
+            constr_dict[f"const.1 p={p}"] = (constr, 1)
+
+        # constraint 2
+        """Each car can maximally be assigned to one platform"""
+        for k in range(self.data.K):
+            constr = sum(x_variables[(k, p)] for p in self.data.P)
+            if build:
+                self.__model.add_constraint(constr <= 1)
+            constr_dict[f"const.2 k={k}"] = (constr, 1)
+
+        # this constraint was introduced by us and not thr BMW paper
+        # constraint 3
+        """ensure that for each p is not combined with multiple others at once"""
+        for p in self.data.P:
+            q_indices = np.where(np.array(self.data.Psp) == int(p))[0]
+            constr = sum(sp_variables[_h] for _h in q_indices)
+            if build:
+                self.__model.add_constraint(constr <= 1)
+            constr_dict[f"const.3 p={p}"] = (constr, 1)
+
+        """For platforms q that can be combined to a larger platform:
+        the number of cars x_kp that are assigned to these subsets must
+        be smaller than the number of elements of q, if the platforms 
+        are not combined, or must be smaller than 1, in the case the 
+        platforms are combined."""
+        # constraint 4
+        for q_idx, q in enumerate(self.data.Psp):
+            constr = sum(
+                [
+                    x_variables[(k, p)]
+                    for (k, p) in itertools.product(range(self.data.K), q)
+                ]
+            )
+            max_constr = len(q) * (1 - sp_variables[q_idx]) + sp_variables[q_idx]
+            if build:
+                self.__model.add_constraint(constr <= max_constr)
+            constr_dict[f"const.4 q_idx={q_idx}"] = (constr, max_constr)
+
+        if not build:
+            return constr_dict
+
+    def length_constraints_no_d(
+        self,
+        x_variables,
+        a_variables,
+        sp_variables,
+        ax11_variables,
+        build=True,
+    ):
+        """
+        Length constraints
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+
+        constr_dict = {}
+        """The total length of the cars on a platform can not be larger than the maximally allowed Length"""
+        # constraint 5
+        for L_idx, L in enumerate(self.data.Pl):
+            L_set = set([i for i in L])
+
+            angled_L = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Length"]
+                    - self.data.vehicles[k]["Length"]
+                    * ax11_variables[(k, self.data.Pa.index(p))]
+                    * self.data.lr_coefficient_no_d[self.data.vehicles[k]["Class"]]
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(L_set.intersection(self.data.Pa_set))
+                    )
+                ]
+            )
+            not_angled_L = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Length"]
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(L_set.difference(self.data.Pa_set))
+                    )
+                ]
+            )
+            constr = angled_L + not_angled_L
+            max_constr = self.data.L_max[L_idx]
+            constr_dict[f"const.5 L_idx={L_idx}"] = (constr, max_constr)
+
+            if build:
+                # print("build angled_L",angled_L)
+                # print("build not_angled_L",not_angled_L)
+                # print("build max_constr", max_constr)
+                self.__model.add_constraint(constr <= max_constr)
+
+        """If platforms are combined to a larger platform, none of the individual platforms can be angled"""
+        # constraint 6
+        for q_idx, q_ in enumerate(self.data.Psp):
+            q_set = set(q_)
+            constr = sum(
+                a_variables[self.data.Pa.index(p)]
+                for p in q_set.intersection(self.data.Pa_set)
+            )
+            max_constr = len(q_) * (1 - sp_variables[q_idx])
+            constr_dict[f"const.6 q_idx={q_idx}"] = (constr, max_constr)
+
+            if build:
+                self.__model.add_constraint(constr <= max_constr)
+        if not build:
+            return constr_dict
+
+    def length_constraints(
+        self,
+        x_variables,
+        a_variables,
+        sp_variables,
+        ax11_variables,
+        d00_variables,
+        d01_variables,
+        d10_variables,
+        d11_variables,
+        build=True,
+    ):
+        """
+        Length constraints
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+
+        constr_dict = {}
+        """The total length of the cars on a platform can not be larger than the maximally allowed Length"""
+        # constraint 5
+        for L_idx, L in enumerate(self.data.Pl):
+            L_set = set([i for i in L])
+
+            angled_L = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Length"]
+                    - self.data.vehicles[k]["Length"]
+                    * ax11_variables[(k, self.data.Pa.index(p))]
+                    * (
+                        self.data.lr_coefficient[self.data.vehicles[k]["Class"]][0][0]
+                        * d00_variables[self.data.Pa.index(p)]
+                        + self.data.lr_coefficient[self.data.vehicles[k]["Class"]][0][1]
+                        * d01_variables[self.data.Pa.index(p)]
+                        + self.data.lr_coefficient[self.data.vehicles[k]["Class"]][1][0]
+                        * d10_variables[self.data.Pa.index(p)]
+                        + self.data.lr_coefficient[self.data.vehicles[k]["Class"]][1][1]
+                        * d11_variables[self.data.Pa.index(p)]
+                    )
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(L_set.intersection(self.data.Pa_set))
+                    )
+                ]
+            )
+            not_angled_L = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Length"]
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(L_set.difference(self.data.Pa_set))
+                    )
+                ]
+            )
+            constr = angled_L + not_angled_L
+            max_constr = self.data.L_max[L_idx]
+            constr_dict[f"const.5 L_idx={L_idx}"] = (constr, max_constr)
+
+            if build:
+                # print("build angled_L",angled_L)
+                # print("build not_angled_L",not_angled_L)
+                # print("build max_constr", max_constr)
+                self.__model.add_constraint(constr <= max_constr)
+
+        """If platforms are combined to a larger platform, none of the individual platforms can be angled"""
+        # constraint 6
+        for q_idx, q_ in enumerate(self.data.Psp):
+            q_set = set(q_)
+            constr = sum(
+                a_variables[self.data.Pa.index(p)]
+                for p in q_set.intersection(self.data.Pa_set)
+            )
+            max_constr = len(q_) * (1 - sp_variables[q_idx])
+            constr_dict[f"const.6 q_idx={q_idx}"] = (constr, max_constr)
+
+            if build:
+                self.__model.add_constraint(constr <= max_constr)
+        if not build:
+            return constr_dict
+
+    def height_constraint_no_d(
+        self,
+        x_variables,
+        ax11_variables,
+        build=True,
+    ):
+        """
+        Height constraints
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+        """The total height of the cars assigned to the platform sets of the set Ph, have to be smaller than H_max"""
+        # constraint 7
+        for H_idx, H in enumerate(self.data.Ph):
+            H_set = set(H)
+
+            non_angled_height = sum(
+                x_variables[(k, p)] * self.data.vehicles[k]["Height"]
+                for (k, p) in itertools.product(
+                    range(self.data.K), list(H_set.difference(self.data.Pa_set))
+                )
+            )
+
+            angled_height = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Height"]
+                    + self.data.vehicles[k]["Height"]
+                    * ax11_variables[(k, self.data.Pa.index(p))]
+                    * self.data.hr_coefficient_no_d[self.data.vehicles[k]["Class"]]
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(H_set.intersection(self.data.Pa_set))
+                    )
+                ]
+            )
+            constr = angled_height + non_angled_height
+            max_constr = self.data.H_max[H_idx]
+            constr_dict[f"const.7 H_idx={H_idx}"] = (constr, max_constr)
+            if build:
+                self.__model.add_constraint(constr <= max_constr)
+        if not build:
+            return constr_dict
+
+    def height_constraint(
+        self,
+        x_variables,
+        ax11_variables,
+        d00_variables,
+        d01_variables,
+        d10_variables,
+        d11_variables,
+        build=True,
+    ):
+        """
+        Height constraints
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+        """The total height of the cars assigned to the platform sets of the set Ph, have to be smaller than H_max"""
+        # constraint 7
+        for H_idx, H in enumerate(self.data.Ph):
+            H_set = set(H)
+
+            non_angled_height = sum(
+                x_variables[(k, p)] * self.data.vehicles[k]["Height"]
+                for (k, p) in itertools.product(
+                    range(self.data.K), list(H_set.difference(self.data.Pa_set))
+                )
+            )
+
+            angled_height = sum(
+                [
+                    x_variables[(k, p)] * self.data.vehicles[k]["Height"]
+                    + self.data.vehicles[k]["Height"]
+                    * ax11_variables[(k, self.data.Pa.index(p))]
+                    * (
+                        self.data.hr_coefficient[self.data.vehicles[k]["Class"]][0][0]
+                        * d00_variables[self.data.Pa.index(p)]
+                        + self.data.hr_coefficient[self.data.vehicles[k]["Class"]][0][1]
+                        * d01_variables[self.data.Pa.index(p)]
+                        + self.data.hr_coefficient[self.data.vehicles[k]["Class"]][1][0]
+                        * d10_variables[self.data.Pa.index(p)]
+                        + self.data.hr_coefficient[self.data.vehicles[k]["Class"]][1][1]
+                        * d11_variables[self.data.Pa.index(p)]
+                    )
+                    for (k, p) in itertools.product(
+                        range(self.data.K), list(H_set.intersection(self.data.Pa_set))
+                    )
+                ]
+            )
+            constr = angled_height + non_angled_height
+            max_constr = self.data.H_max[H_idx]
+            constr_dict[f"const.7 H_idx={H_idx}"] = (constr, max_constr)
+            if build:
+                self.__model.add_constraint(constr <= max_constr)
+        if not build:
+            return constr_dict
+
+    def weight_constraints(
+        self, x_variables, sp_variables, a_variables, ax11_variables, build=True
+    ):
+        """
+        Weight constraints
+
+        Returns: the constraint dictionary if build=False and sets the constraint for self.__model if build=True
+        """
+        constr_dict = {}
+
+        """Platforms than can not be angled, have to be checkd so that the weight
+        of their assigned car does not exceed (gamma:) the weight limit of either
+        the platform or the weight limit of a combined configuration with another
+        platform"""
+        for p in set(self.data.P).difference(self.data.Pa_set):
+            # calculate the weight of the cars assigned to the platform p
+            q_indices = np.where(np.array(self.data.Psp) == int(p))[0]
+
+            weight = sum(
+                [
+                    self.data.vehicles[k]["Weight"] * x_variables[(k, p)]
+                    for k in range(self.data.K)
+                ]
+            )
+
+            # constraint 8
+            # if q set is empty the total weight must be less than the wp_max of the platform
+            if len(q_indices) == 0:
+                max_pltfrm_weight = self.data.wp_max[p]
+                constr_dict[f"const.8 p={p}"] = (weight, max_pltfrm_weight)
+                if build:
+                    self.__model.add_constraint(weight <= max_pltfrm_weight)
+
+            # constraint 9
+            for q_idx in q_indices:
+                gamma_constraint = sum(
+                    [
+                        sp_variables[q_idx]
+                        * x_variables[(k, p)]
+                        * self.data.wc_max[q_idx]
+                        + (1 - sp_variables[q_idx])
+                        * x_variables[(k, p)]
+                        * self.data.wp_max[p]
+                        for k in range(self.data.K)
+                    ]
+                )
+                constr_dict[f"const.9 (p, q_idx)={(p, q_idx)}"] = (
+                    weight,
+                    gamma_constraint,
+                )
+
+                if build:
+                    self.__model.add_constraint(weight <= gamma_constraint)
+
+        """Platforms that can be angled, are required to have a smaller weight than 
+        the maximally allowed weight in an angled position. While at the same time, 
+        if the platform is not angled the gamma factor checks the maximally allowed 
+        load based on whether the platform can/has been combined with another to a 
+        larger platform"""
+        for p in self.data.Pa_set:
+            q_indices = np.where(np.array(self.data.Psp) == int(p))[0]
+
+            weight = sum(
+                self.data.vehicles[k]["Weight"] * x_variables[(k, p)]
+                for k in range(self.data.K)
+            )
+
+            # constraint 10
+            if len(q_indices) == 0:
+                max_angle_weight = (
+                    a_variables[self.data.Pa.index(p)]
+                    * self.data.wa_max[self.data.Pa.index(p)]
+                    + (1 - a_variables[self.data.Pa.index(p)]) * self.data.wp_max[p]
+                )
+                constr_dict[f"const.10 p={p}"] = (weight, max_angle_weight)
+
+                if build:
+                    self.__model.add_constraint(weight <= max_angle_weight)
+
+            # constraint 11
+            for q_idx in q_indices:
+                gamma_constraint = sum(
+                    [
+                        sp_variables[q_idx]
+                        * x_variables[(k, p)]
+                        * self.data.wc_max[q_idx]
+                        + (1 - sp_variables[q_idx])
+                        * x_variables[(k, p)]
+                        * self.data.wp_max[p]
+                        for k in range(self.data.K)
+                    ]
+                )
+                angle_const = (
+                    a_variables[self.data.Pa.index(p)]
+                    * self.data.wa_max[self.data.Pa.index(p)]
+                )
+
+                anlge_gamma_constr = sum(
+                    [
+                        ax11_variables[(k, self.data.Pa.index(p))]
+                        * (
+                            sp_variables[q_idx] * self.data.wc_max[q_idx]
+                            + (1 - sp_variables[q_idx]) * self.data.wp_max[p]
+                        )
+                        for k in range(self.data.K)
+                    ]
+                )
+                max_sp_a_weight = -anlge_gamma_constr + angle_const + gamma_constraint
+                constr_dict[f"const.11 (p, q_idx)={(p, q_idx)}"] = (
+                    weight,
+                    max_sp_a_weight,
+                )
+
+                if build:
+                    self.__model.add_constraint(weight <= max_sp_a_weight)
+
+        """The weight of the cars on each platform L, must be smaller than the maximally allowed weight on L"""
+        # constraint 12
+        for L_idx, L in enumerate(self.data.Pl):
+            platform_weight = sum(
+                [
+                    self.data.vehicles[k]["Weight"] * x_variables[(k, p)]
+                    for (k, p) in itertools.product(range(self.data.K), L)
+                ]
+            )
+            max_pl_weight = self.data.wl_max[L_idx]
+            constr_dict[f"const.12 L_idx={L_idx}"] = (platform_weight, max_pl_weight)
+
+            if build:
+                self.__model.add_constraint(platform_weight <= max_pl_weight)
+
+        """The total weight that is exerted on the truck or its trailers, must be smaller than their maximally allowed load"""
+        # constraint 13
+        for T_idx, T in enumerate(self.data.Pt):
+            vehicle_weight = sum(
+                [
+                    self.data.vehicles[k]["Weight"] * x_variables[(k, p)]
+                    for (k, p) in itertools.product(range(self.data.K), T)
+                ]
+            )
+            max_t_weight = self.data.wt_max[T_idx]
+            constr_dict[f"const. 13 T_idx={T_idx}"] = (vehicle_weight, max_t_weight)
+
+            if build:
+                self.__model.add_constraint(vehicle_weight <= max_t_weight)
+
+        """The total weight of the vehicles on all platforms must be smaller than W_max"""
+        # constraint 14
+        total_weight = sum(
+            self.data.vehicles[k]["Weight"] * x_variables[(k, p)]
+            for (k, p) in itertools.product(range(self.data.K), self.data.P)
+        )
+        max_T_weight = self.data.W_max
+        constr_dict[f"const. 14"] = (total_weight, max_T_weight)
+
+        if build:
+            self.__model.add_constraint(total_weight <= max_T_weight)
+        else:
+            return constr_dict
+
+    def allowed_variables(self):
+        """
+        Define the allowed indices for the different decision variables.
+
+        Note: ax is a slack variable for linearisation of the quadratic terms a*x
+        ,while dd is the slack variable for the linearisation of d*d variables
+        , dd is only necessary for pa variables, since only quadratic d terms of
+        angled platforms times their neighbour will exist in the formulation.
+
+        All indices will always be starting from 0.
+        """
+
+        return {
+            "x": [
+                (k, p)
+                for k, p in itertools.product(
+                    range(self.data.K), range(len(self.data.P))
+                )
+            ],
+            "a": [a for a in range(len(self.data.Pa))],
+            "d": [d for d in range(len(self.data.P))],
+            "sp": [sp for sp in range(len(self.data.Psp))],
+            "ax": [
+                (k, p)
+                for k, p in itertools.product(
+                    range(self.data.K), range(len(self.data.Pa))
+                )
+            ],
+            "dd": [a for a in range(len(self.data.Pa))],
+        }
+
+    @property
+    def variables(self):
+        return self.__variables
+
+    @property
+    def model(self):
+        return self.__model
+
+    def check_solution_test(self, solution):
+        """
+        all constraints given back are of the format (constr, max_constr).
+        If max_constr - constr > 0 it is fulfilled and if <0 not.
+
+        While the tupel values of the equal constraints have to be equal.
+        """
+        all_constraints = {}
+        equal_constr = {}
+
+        if self.d_var_exists and self.old_sack_var:
+            x_variables = solution["x_variables"]
+            a_variables = solution["a_variables"]
+            sp_variables = solution["sp_variables"]
+
+            d_variables = solution["d_variables"]
+
+            d00_variables = solution["d00_variables"]
+            d01_variables = solution["d01_variables"]
+            d10_variables = solution["d10_variables"]
+            d11_variables = solution["d11_variables"]
+
+            ax00_variables = solution["ax00_variables"]
+            ax01_variables = solution["ax01_variables"]
+            ax10_variables = solution["ax10_variables"]
+            ax11_variables = solution["ax11_variables"]
+
+            dd_constraints, dd_equal_constr = self.dd_slack_variables(
+                d_variable=d_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(dd_constraints)
+            equal_constr.update(dd_equal_constr)
+
+            ax_constraints, ax_equal_constr = self.ax_slack_variables_old(
+                a_variables=a_variables,
+                x_variables=x_variables,
+                ax00_variables=ax00_variables,
+                ax01_variables=ax01_variables,
+                ax10_variables=ax10_variables,
+                ax11_variables=ax11_variables,
+                build=False,
+            )
+            all_constraints.update(ax_constraints)
+            equal_constr.update(ax_equal_constr)
+
+            # length constraint
+            length_constraints = self.length_constraints(
+                x_variables=x_variables,
+                a_variables=a_variables,
+                sp_variables=sp_variables,
+                ax11_variables=ax11_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(length_constraints)
+
+            height_constraints = self.height_constraint(
+                x_variables=x_variables,
+                ax11_variables=ax11_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(height_constraints)
+
+        elif self.d_var_exists and not self.old_sack_var:
+            x_variables = solution["x_variables"]
+            a_variables = solution["a_variables"]
+            sp_variables = solution["sp_variables"]
+
+            d_variables = solution["d_variables"]
+
+            d00_variables = solution["d00_variables"]
+            d01_variables = solution["d01_variables"]
+            d10_variables = solution["d10_variables"]
+            d11_variables = solution["d11_variables"]
+
+            ax11_variables = solution["ax11_variables"]
+
+            dd_constraints, dd_equal_constr = self.dd_slack_variables(
+                d_variable=d_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(dd_constraints)
+            equal_constr.update(dd_equal_constr)
+
+            self.ax_slack_variables(
+                a_variables=a_variables,
+                x_variables=x_variables,
+                ax11_variables=ax11_variables,
+            )
+
+            # length constraint
+            length_constraints = self.length_constraints(
+                x_variables=x_variables,
+                a_variables=a_variables,
+                sp_variables=sp_variables,
+                ax11_variables=ax11_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(length_constraints)
+
+            height_constraints = self.height_constraint(
+                x_variables=x_variables,
+                ax11_variables=ax11_variables,
+                d00_variables=d00_variables,
+                d01_variables=d01_variables,
+                d10_variables=d10_variables,
+                d11_variables=d11_variables,
+                build=False,
+            )
+            all_constraints.update(height_constraints)
+
+        elif not self.d_var_exists and self.old_sack_var:
+            x_variables = solution["x_variables"]
+            a_variables = solution["a_variables"]
+            sp_variables = solution["sp_variables"]
+
+            ax00_variables = solution["ax00_variables"]
+            ax01_variables = solution["ax01_variables"]
+            ax10_variables = solution["ax10_variables"]
+            ax11_variables = solution["ax11_variables"]
+
+            ax_constraints, ax_equal_constr = self.ax_slack_variables_old(
+                a_variables=a_variables,
+                x_variables=x_variables,
+                ax00_variables=ax00_variables,
+                ax01_variables=ax01_variables,
+                ax10_variables=ax10_variables,
+                ax11_variables=ax11_variables,
+                build=False,
+            )
+            all_constraints.update(ax_constraints)
+            equal_constr.update(ax_equal_constr)
+
+            length_constraints = self.length_constraints_no_d(
+                x_variables=x_variables,
+                a_variables=a_variables,
+                sp_variables=sp_variables,
+                ax11_variables=ax11_variables,
+                build=False,
+            )
+            all_constraints.update(length_constraints)
+
+            height_constraints = self.height_constraint_no_d(
+                x_variables=x_variables, ax11_variables=ax11_variables, build=False
+            )
+            all_constraints.update(height_constraints)
+
+        elif not self.d_var_exists and not self.old_sack_var:
+            x_variables = solution["x_variables"]
+            a_variables = solution["a_variables"]
+            sp_variables = solution["sp_variables"]
+
+            ax11_variables = solution["ax11_variables"]
+
+            ax_constraints, ax_equal_constr = self.ax_slack_variables(
+                a_variables=a_variables,
+                x_variables=x_variables,
+                ax11_variables=ax11_variables,
+                build=False,
+            )
+            all_constraints.update(ax_constraints)
+            equal_constr.update(ax_equal_constr)
+
+            length_constraint = self.length_constraints_no_d(
+                x_variables=x_variables,
+                a_variables=a_variables,
+                sp_variables=sp_variables,
+                ax11_variables=ax11_variables,
+                build=False,
+            )
+            all_constraints.update(length_constraint)
+
+            height_constraints = self.height_constraint_no_d(
+                x_variables=x_variables, ax11_variables=ax11_variables, build=False
+            )
+            all_constraints.update(height_constraints)
+
+        # assignement constraints
+        assign_constraints = self.assignment_constraints(
+            x_variables=x_variables, sp_variables=sp_variables, build=False
+        )
+        all_constraints.update(assign_constraints)
+
+        weight_constraints = self.weight_constraints(
+            x_variables=x_variables,
+            sp_variables=sp_variables,
+            a_variables=a_variables,
+            ax11_variables=ax11_variables,
+            build=False,
+        )
+        all_constraints.update(weight_constraints)
+
+        passed_count = 0
+        failed_count = 0
+        for name, values in equal_constr.items():
+            Delta = values[1] - values[0]
+            # print(name, values[0], values[1])
+            if Delta == 0:
+                # print("PASSED")
+                passed_count += 1
+            else:
+                print(f"{name} - Failed", Delta)
+                failed_count += 1
+
+        for name, values in all_constraints.items():
+            Delta = values[1] - values[0]
+            # print(name, values[0], values[1])
+            if Delta >= 0:
+                # print(f"PASSED")
+                passed_count += 1
+            else:
+                print(f"{name} - Failed", Delta)
+                failed_count += 1
+
+        print(f"Passed {passed_count} constraints")
+        print(f"Failed {failed_count} constraints")

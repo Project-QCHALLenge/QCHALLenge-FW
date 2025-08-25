@@ -1,0 +1,12 @@
+cplex >=20.1
+docplex>=2.23
+gurobipy>=10.0,<12
+pennylane >=0.34
+pygltflib >=1.16
+matplotlib >=3.5
+qiskit-aer >=0.15
+dwave-neal>=0.5.0
+pyscipopt >= 4.0.0
+scikit-learn>=1.2.1
+dwave-ocean-sdk >=5.0
+qiskit-optimization >=0.5

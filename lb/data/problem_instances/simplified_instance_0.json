@@ -1,0 +1,49 @@
+{
+  "number_of_trucks" : 4 ,
+  "products" : [
+    {
+      "quantity" : 29 ,
+      "weight" : 240
+    } ,
+    {
+      "quantity" : 26 ,
+      "weight" : 288
+    } ,
+    {
+      "quantity" : 24 ,
+      "weight" : 402
+    } ,
+    {
+      "quantity" : 24 ,
+      "weight" : 300
+    } ,
+    {
+      "quantity" : 19 ,
+      "weight" : 762
+    } ,
+    {
+      "quantity" : 6 ,
+      "weight" : 5688
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 14220
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 9720
+    } ,
+    {
+      "quantity" : 2 ,
+      "weight" : 3564
+    } ,
+    {
+      "quantity" : 1 ,
+      "weight" : 3996
+    } ,
+    {
+      "quantity" : 1 ,
+      "weight" : 3420
+    }
+  ]
+}
