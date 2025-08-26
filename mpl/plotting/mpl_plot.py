@@ -132,15 +132,15 @@ class MPLPlot:
         for t in range(0, max_time + 1):
             fig.add_vline(x=t, line=dict(color='grey', dash='dash'), layer='below', line_width=0.5)
 
-        buffer = BytesIO()
-        fig.write_image(buffer, format='png')
-        buffer.seek(0)
-        plt.figure(figsize=(12,8))
-        img = mpimg.imread(buffer, format='png')
-        plt.imshow(img)
-        plt.axis('off')
+        #buffer = BytesIO()
+        #fig.write_image(buffer, format='png')
+        #buffer.seek(0)
+        #plt.figure(figsize=(12,8))
+        #img = mpimg.imread(buffer, format='png')
+        #plt.imshow(img)
+        #plt.axis('off')
 
-        return plt
+        return fig
 
     # def plot(self):
 

@@ -111,12 +111,6 @@ class PASPlot:
             orientation="h",
             insidetextanchor="middle",
         )
-        buffer = BytesIO()
-        fig.write_image(buffer, format='png')
-        buffer.seek(0)
-        plt.figure(figsize=(12,8))
-        img = mpimg.imread(buffer, format='png')
-        plt.imshow(img)
-        plt.axis('off')
-        return plt
+
+        return fig
 
