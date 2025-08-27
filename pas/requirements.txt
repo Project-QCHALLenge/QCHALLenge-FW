@@ -3,7 +3,6 @@ cplex>=20.1
 plotly==5.19.0
 docplex>=2.23
 gurobipy>=10.0,<12
-kaleido==0.2.1
 matplotlib>=3.5
 dwave-neal>=0.5.0
 dwave-ocean-sdk>=5.0
