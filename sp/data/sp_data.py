@@ -6,9 +6,10 @@ import networkx as nx
 from pathlib import Path
 
 from .glb_reader_small import create_problem_from_glb
+from abstract.data.abstract_data import AbstractData
 
 
-class SPData: 
+class SPData(AbstractData):
 
     def __init__(
             self, 
@@ -242,7 +243,7 @@ class SPData:
 
 
     @classmethod
-    def create_graph_from_file(cls, path):
+    def from_json(cls, path):
         problem_dict = cls.__gimport(cls, path)
         return cls.create_cls(problem_dict)
 
@@ -475,6 +476,10 @@ class SPData:
             return 0
         else: 
             return 1
+
+    @classmethod
+    def from_random(cls, *args, **kwargs):
+        raise NotImplementedError
 
 
 

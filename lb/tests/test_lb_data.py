@@ -20,7 +20,7 @@ class TestLBDataCreateProblem(TestCase):
             new = unittest.mock.mock_open(read_data=self.mock_file_content),
             create=True
         ) as file_mock:
-            data_object_from_file = LBData.create_problem_from_file("")
+            data_object_from_file = LBData.from_json("")
             equality_statement = ((data_object_from_file.number_of_trucks  == self.data_object.number_of_trucks)
                                   and (data_object_from_file.products == self.data_object.products))
             self.assertTrue(equality_statement)
