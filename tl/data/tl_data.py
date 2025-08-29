@@ -7,10 +7,11 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, parent_dir)
 # local import
 from tl.utils.tl_data_generic import TruckLoadingData, TruckParameters
+from abstract.data.abstract_data import AbstractData
 
 
 @dataclass(order=True)
-class TLData(TruckLoadingData):
+class TLData(TruckLoadingData, AbstractData):
     """
     Dataclass for the 2 dimensional truckloading problem (tl2d)
     """
@@ -72,6 +73,10 @@ class TLData(TruckLoadingData):
         return instance
 
     @classmethod
+    def from_random(cls,  num_boxes, seed: int = 1):
+        return cls.get_random_problem(num_boxes, seed)
+
+    @classmethod
     def get_random_problem(cls, num_boxes, seed: int = 1):
         """
         Generates a random problem dataset with the specified number of boxes and a given random seed.
@@ -105,8 +110,10 @@ class TLData(TruckLoadingData):
         )
 
         return tl2d_data
-    
-    
         
     def get_num_variables(self):
         return self.num_variables
+
+    @classmethod
+    def from_json(cls,  *args, **kwargs):
+        raise NotImplementedError

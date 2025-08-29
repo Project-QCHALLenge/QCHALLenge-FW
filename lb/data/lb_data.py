@@ -1,8 +1,9 @@
 import json
 import numpy as np
+from abstract.data.abstract_data import AbstractData
 
 
-class LBData:
+class LBData(AbstractData):
     def __init__(self, params: dict):
         self.number_of_trucks = params["number_of_trucks"]
         self.products = params["products"]
@@ -26,9 +27,8 @@ class LBData:
 
         self.weights = [product["weight"] for product in self.products]
 
-        assert(all(weight >= 1 for weight in self.weights))
-        assert(int(self.capacity_per_truck) == self.capacity_per_truck)
-
+        assert (all(weight >= 1 for weight in self.weights))
+        assert (int(self.capacity_per_truck) == self.capacity_per_truck)
 
     @classmethod
     def create_problem(cls, number_of_trucks: int, products: list[tuple]):
@@ -37,12 +37,15 @@ class LBData:
         return cls(params)
 
     @classmethod
-    def create_problem_from_file(cls, path_to_file: str):
+    def from_json(cls, path_to_file: str):
         with open(path_to_file, "r") as file:
             data_from_file = json.load(file)
 
         return cls(data_from_file)
 
+    @classmethod
+    def from_random(cls, *args, **kwargs):
+        raise NotImplementedError
 
 
 

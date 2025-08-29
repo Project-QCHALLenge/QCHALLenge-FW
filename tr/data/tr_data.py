@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import Union
 import networkx as nx
 import random
-
+from abstract.data.abstract_data import AbstractData
 
 @dataclass(order=True)
-class TRData:
+class TRData(AbstractData):
     EXAMPLES = {
         1: "3-5-slow",
         2: "2-2-opposite",
@@ -530,3 +530,7 @@ class TRData:
 
         cls.railnet = railnet
         return cls()
+
+    @classmethod
+    def from_json(cls,  *args, **kwargs):
+        raise NotImplementedError
