@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-
+from abstract.plot.abstract_plot import AbstractPlot
 from tr.evaluation.evaluation import TREvaluation
 from tr.data.railnetwork import RailNetwork
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import networkx as nx
 import matplotlib.patheffects as patheffects
 
 
-class TRPlot:
+class TRPlot(AbstractPlot):
     def __init__(self, evaluation : TREvaluation) -> None:
         solution = evaluation.solution
         self.vars: dict = {
