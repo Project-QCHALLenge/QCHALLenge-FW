@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
+from abstract.data.abstract_data import AbstractData
 
 
-class TruckParameters:
+class TruckParameters(AbstractData):
 
     truck_length = int
     truck_width = int
@@ -16,7 +17,7 @@ class TruckParameters:
         self.truck_capacity = truck_capacity
 
 
-class TruckLoadingData:
+class TruckLoadingData(AbstractData):
     boxes: pd.DataFrame
     truck_parameters: TruckParameters
     truck_length: int
@@ -124,7 +125,7 @@ class TruckLoadingData:
             "Get example loading function is not yet implemented."
         )
     
-    def get_num_variables(sefl):
+    def get_num_variables(self):
         raise NotImplementedError(
             "Get number of variables (complexity) function is not yet implemented."
         )

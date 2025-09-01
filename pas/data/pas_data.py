@@ -104,6 +104,7 @@ class PASData(AbstractData):
             data = json.load(json_file)
         return cls(**data)
 
+
     @classmethod
     def from_random(cls, m: int, j: int = None, alpha: float = 1.0, seed: int = None):
         """ Create a random instance of the problem using Abhisheks funtion. """

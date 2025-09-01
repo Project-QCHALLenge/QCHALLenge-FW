@@ -43,9 +43,6 @@ class LBData(AbstractData):
 
         return cls(data_from_file)
 
-    @classmethod
-    def from_random(cls, *args, **kwargs):
-        raise NotImplementedError
 
 
 

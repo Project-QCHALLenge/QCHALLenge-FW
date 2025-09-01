@@ -477,9 +477,6 @@ class SPData(AbstractData):
         else: 
             return 1
 
-    @classmethod
-    def from_random(cls, *args, **kwargs):
-        raise NotImplementedError
 
 
 

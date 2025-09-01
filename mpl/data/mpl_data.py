@@ -65,9 +65,8 @@ class MPLData(AbstractData):
         }
         return cls(params)
 
-    def from_random(cls, *args, **kwargs):
-        raise NotImplementedError
 
+    @classmethod
     def from_json(cls,  *args, **kwargs):
         raise NotImplementedError
 

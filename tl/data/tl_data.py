@@ -7,14 +7,14 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, parent_dir)
 # local import
 from tl.utils.tl_data_generic import TruckLoadingData, TruckParameters
-from abstract.data.abstract_data import AbstractData
 
 
 @dataclass(order=True)
-class TLData(TruckLoadingData, AbstractData):
+class TLData(TruckLoadingData):
     """
     Dataclass for the 2 dimensional truckloading problem (tl2d)
     """
+
 
     def __init__(self, truck_parameters: TruckParameters, boxes: pd.DataFrame):
         super().__init__(boxes, truck_parameters)
@@ -113,7 +113,3 @@ class TLData(TruckLoadingData, AbstractData):
         
     def get_num_variables(self):
         return self.num_variables
-
-    @classmethod
-    def from_json(cls,  *args, **kwargs):
-        raise NotImplementedError

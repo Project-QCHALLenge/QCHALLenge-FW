@@ -531,6 +531,3 @@ class TRData(AbstractData):
         cls.railnet = railnet
         return cls()
 
-    @classmethod
-    def from_json(cls,  *args, **kwargs):
-        raise NotImplementedError
