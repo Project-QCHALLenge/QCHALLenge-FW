@@ -8,8 +8,10 @@ from lb.data.lb_data import LBData
 from lb.models.lb_abstract_model import LBAbstractModel
 from dimod import CQM, Binary
 import time
+from abstract.models.abstract_model import AbstractModel
 
-class LBDWAVECQMUnaryUniformTruckCapacity(LBAbstractModel):
+
+class LBDWAVECQMUnaryUniformTruckCapacity(LBAbstractModel, AbstractModel):
 
     def __init__(self, data: LBData):
         super().__init__(data)

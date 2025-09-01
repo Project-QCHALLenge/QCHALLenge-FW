@@ -1,10 +1,11 @@
 import time
 
 import gurobipy as gp
-
+from abstract.models.abstract_model import AbstractModel
 from sp.data.sp_data import SPData
 
-class SPGurobi:
+
+class SPGurobi(AbstractModel):
 
     def __init__(self, data: SPData):
         self.data = data
@@ -16,7 +17,7 @@ class SPGurobi:
         self.build_model()
 
     def build_model(self):
-        # add variabl
+        # add variable
         for lidar in self.data.listLidar:
             var_name = f"x_{lidar[0]}_{lidar[1]}_{lidar[2]}_{lidar[3]}_{lidar[4]}"
             self.variables[lidar] = self.model.addVar(vtype=gp.GRB.BINARY, name=var_name)

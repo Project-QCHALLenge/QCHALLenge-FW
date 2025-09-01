@@ -1,7 +1,7 @@
 import time
 import itertools
 import numpy as np
-
+from abstract.models.abstract_model import AbstractModel
 from docplex.mp.model import Model as CplexModel
 from enum import Enum
 
@@ -12,7 +12,7 @@ class Sense(Enum):
     Max = "max"
 
 
-class CplexACL(CplexModel):
+class CplexACL(CplexModel, AbstractModel):
     """
     Class to create a Cplex model, with maximally quadratic temrs, for the Autocarrier Loading Problem
     """

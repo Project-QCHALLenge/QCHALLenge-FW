@@ -8,14 +8,14 @@ from transformations.from_cplex import FromCQM
 
 import sys
 import os
-
+from abstract.models.abstract_model import AbstractModel
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 from tl.evaluation.tl_solution import *
 from tl.models.tl_generic import Tl2D_Generic
 
 
-class TL2D_Qubo(Tl2D_Generic):
+class TL2D_Qubo(Tl2D_Generic, AbstractModel):
     model_name = "Qubo"
 
     def __init__(self, data):
@@ -374,6 +374,9 @@ class TL2D_Qubo(Tl2D_Generic):
                             penalty=self.penalty,
                             label=f"NonOverlappingY_WithRotation_{box_1}_{y_step}",
                         )
+
+    def solve(self, solve_func, **config):
+        self.optimize(solve_func=solve_func, **config)
 
     def optimize(self, solve_func, **config):
 

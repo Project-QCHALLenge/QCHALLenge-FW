@@ -4,8 +4,10 @@ import numpy.typing as npt
 from scipy.linalg import block_diag
 from pas.data.pas_data import PASData
 import time
+from abstract.models.abstract_model import AbstractModel
 
-class QuboPAS:
+
+class QuboPAS(AbstractModel):
 
     def __init__(
             self,

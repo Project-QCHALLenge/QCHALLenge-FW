@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from lb.data.lb_data import LBData
-
+from abstract.models.abstract_model import AbstractModel
 
 class LBAbstractModel(ABC):
     def __init__(self, data: LBData):
@@ -11,25 +11,17 @@ class LBAbstractModel(ABC):
         pass
 
     @abstractmethod
-    def solve(self, **params):
+    def solution(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def solution(self):
+    def _create_variables(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def build_model(self):
+    def _create_data_structures(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def _create_variables(self):
-        pass
-
-    @abstractmethod
-    def _create_data_structures(self):
-        pass
-
-    @abstractmethod
-    def set_initial_solution(self, solution):
+    def set_initial_solution(self, *args, **kwargs):
         pass
