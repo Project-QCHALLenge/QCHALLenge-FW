@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 
 from mpl.models.mpl_gurobi_wait_overlap import MPLGurobiWaitOverlap
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
 
-class MPLEvaluation:
+class MPLEvaluation(AbstractEvaluation):
     def __init__(self, data, solution):
         self.data = data
         self.n_A_jobs = self.data.N_A

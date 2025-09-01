@@ -2,9 +2,10 @@ from tr.data.tr_data import TRData
 from tr.models.tr_cplex import TR_cplex
 
 from typing import Union
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
 
-class TREvaluation:
+class TREvaluation(AbstractEvaluation):
 
     def __init__(
         self,
