@@ -3,7 +3,7 @@ import numpy as np
 from abstract.data.abstract_data import AbstractData
 
 
-class TruckParameters(AbstractData):
+class TruckParameters:
 
     truck_length = int
     truck_width = int
@@ -129,3 +129,7 @@ class TruckLoadingData(AbstractData):
         raise NotImplementedError(
             "Get number of variables (complexity) function is not yet implemented."
         )
+
+    @classmethod
+    def create_problem(cls,  *args, **kwargs):
+        pass
