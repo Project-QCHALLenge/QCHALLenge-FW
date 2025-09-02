@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 import unittest.mock
 from lb.data.lb_data import LBData
 import numpy as np
@@ -64,6 +64,32 @@ class TestLBDataCreateProblem(TestCase):
 
     def test_create_problem_capacity_per_truck(self):
         self.assertEqual(self.data_object.capacity_per_truck, 5)
+
+    @mock.patch("numpy.unique")
+    @mock.patch("lb.data.lb_data.LBData.create_problem")
+    def test_create_problem_from_random_correct_load_per_truck(self, mock_create_problem, mock_unique):
+        number_of_trucks = 5
+        capacity_per_truck = 10
+        total_load_per_truck = 100
+        mock_unique.return_value = ([0], [0])
+        mock_create_problem.return_value = None
+        data = LBData.from_random(number_of_trucks, capacity_per_truck, total_load_per_truck)
+        kwargs = mock_unique.call_args
+        assignments_per_truck = kwargs[0][0]
+        self.assertTrue(all(x == total_load_per_truck for x in np.sum(assignments_per_truck, axis=1)))
+
+    @mock.patch("numpy.unique")
+    @mock.patch("lb.data.lb_data.LBData.create_problem")
+    def test_create_problem_from_random_correct_shape(self, mock_create_problem, mock_unique):
+        number_of_trucks = 5
+        capacity_per_truck = 10
+        total_load_per_truck = 100
+        mock_unique.return_value = ([0], [0])
+        mock_create_problem.return_value = None
+        data = LBData.from_random(number_of_trucks, capacity_per_truck, total_load_per_truck)
+        kwargs = mock_unique.call_args
+        assignments_per_truck = np.array(kwargs[0][0])
+        self.assertTrue(assignments_per_truck.shape == (number_of_trucks, capacity_per_truck))
 
 
 

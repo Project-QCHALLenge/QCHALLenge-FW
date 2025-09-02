@@ -1,6 +1,7 @@
 import json
 import numpy as np
 from abstract.data.abstract_data import AbstractData
+import math
 
 
 class LBData(AbstractData):
@@ -42,6 +43,31 @@ class LBData(AbstractData):
             data_from_file = json.load(file)
 
         return cls(data_from_file)
+
+    @classmethod
+    def from_random(cls, number_of_trucks, capacity_per_truck, total_load_per_truck):
+        assert number_of_trucks > 0 and type(number_of_trucks) == int
+        assert capacity_per_truck > 0 and type(capacity_per_truck) == int
+        assert total_load_per_truck > 0 and type(total_load_per_truck) == int
+        assert total_load_per_truck >= capacity_per_truck
+        # Generates partially random instance with total_load_per_truck as optimal objective value
+        total_weights = np.zeros(shape=(number_of_trucks, capacity_per_truck))
+        for truck in range(number_of_trucks):
+            weights = [math.floor(total_load_per_truck / capacity_per_truck) for _ in range(capacity_per_truck)]
+            i = 0
+            while sum(weights) < total_load_per_truck:
+                weights[i] += 1
+                i += 1
+            minimal_weight_before_perturbation = min(weights)
+            for i in range(math.floor(capacity_per_truck / 2)):
+                random_perturbation = np.random.randint(0, minimal_weight_before_perturbation)
+                weights[i] += random_perturbation
+                weights[-i] -= random_perturbation
+            total_weights[truck] = weights
+
+        unique_weights, counts = np.unique(total_weights, return_counts=True)
+        product_list = [i for i in zip(counts, unique_weights)]
+        return cls.create_problem(number_of_trucks, product_list)
 
 
 
