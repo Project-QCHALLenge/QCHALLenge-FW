@@ -26,5 +26,6 @@ dependencies = [
   "ipywidgets",
 ]
 
-[tool.setuptools]
-py-modules = ["qchallenge_framework"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["qchallenge_framework*"]
