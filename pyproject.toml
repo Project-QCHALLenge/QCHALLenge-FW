@@ -5,25 +5,27 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "qchallenge-framework"
 version = "1.0.0"
-description = "QCHALLenge Python framework"
-authors = [{ name = "Project QCHALLenge" }]
-requires-python = ">=3.12,<3.14"
+description = "QCHALLenge Framework"
+authors = [{ name = "QCHALLenge Team" }]
 readme = "README.md"
+requires-python = ">=3.12,<3.14"
 license = { text = "Apache-2.0" }
-
-# Alle Requirements aus all_requirements.txt
 dependencies = [
-    "cplex",
-    "docplex",
-    "gurobipy",
-    "dwave-ocean-sdk",
-    "pennylane",
-    "qiskit-aer",
-    "qiskit-optimization",
-    "scikit-learn",
-    "seaborn",
-    "plotly",
-    "pygltflib",
-    "pygcgopt",
-    "ipywidgets"
+  "cplex",
+  "docplex",
+  "gurobipy",
+  "dwave-ocean-sdk",
+  "pennylane",
+  "qiskit-aer",
+  "qiskit-optimization",
+  "scikit-learn",
+  "seaborn",
+  "plotly",
+  "pygltflib",
+  "pygcgopt",
+  "ipywidgets",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
