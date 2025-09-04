@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qchallenge-framework"
+version = "1.0.0"
+description = "QCHALLenge Python framework"
+authors = [{ name = "Project QCHALLenge" }]
+requires-python = ">=3.12,<3.14"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+
+# Alle Requirements aus all_requirements.txt
+dependencies = [
+    "cplex",
+    "docplex",
+    "gurobipy",
+    "dwave-ocean-sdk",
+    "pennylane",
+    "qiskit-aer",
+    "qiskit-optimization",
+    "scikit-learn",
+    "seaborn",
+    "plotly",
+    "pygltflib",
+    "pygcgopt",
+    "ipywidgets"
+]
