@@ -451,30 +451,29 @@ class SPData(AbstractData):
 
     @classmethod
     def _intersect(cls, line, w):
-        
         a=line[1][0]-line[0][0]
         b=w[0][0]-w[1][0]
         c=line[1][1]-line[0][1]
         d=w[0][1]-w[1][1]
         det=a*d-b*c
-        if det==0: 
+        if det==0:
             return 0
         line_s=line[0]
         lidarh=line_s[2]
         mauerh=w[2]
-        if mauerh==0: 
+        if mauerh==0:
             return 0
         ws=w[0] #eckige Klammer ist Liste ist Vektor
         diff=[ws[i]-line_s[i] for i in range(len(ws))]
         im=1.0/det*np.array([[d,-b],[-c,a]])
         r=np.dot(im,diff)
-        if not (r[0]>0 and r[0]<1 and r[1]>0 and r[1]<1): 
+        if not (r[0]>0 and r[0]<1 and r[1]>0 and r[1]<1):
             return 0
 
         #r[0] Anteil zwischen Lidar und Mauer vergl. zu Lidar und Straßenpunkt, wenn in line erst das lidar kommt
-        if lidarh/mauerh>=1/(1-r[0]): 
+        if lidarh/mauerh>=1/(1-r[0]):
             return 0
-        else: 
+        else:
             return 1
 
 
