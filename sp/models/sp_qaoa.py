@@ -8,11 +8,11 @@ from pennylane import numpy as np
 import pennylane as qml
 from pennylane import qaoa
 from typing import Union
-
+from abstract.models.abstract_model import AbstractModel
 import time
 
 
-class QAOA_SP:
+class QAOA_SP(AbstractModel):
     """
     QAOA / QAOAnsatz class for the sensor positioning problem.
 
@@ -473,6 +473,9 @@ class QAOA_SP:
 
         runtime = time.time() - start_time
         return params_list, cost_list, runtime
+
+    def build_model(self):
+        self.qubo_to_ising(self.QuboModel.model)
 
     def solve(self, iterations, optimizer = "Adam", learning_rate = 0.01, seed = 1, info = False, **params):
         """
