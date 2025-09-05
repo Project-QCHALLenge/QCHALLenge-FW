@@ -19,5 +19,5 @@ for constraint, violations in evaluation.check_solution().items():
     if len(violations) > 0:
         print(f"contraint {constraint} was violated {len(violations)} times")
 
-plt = TLPlot(evaluation).plot()
+plt = TLPlot(evaluation).plot_solution()
 plt.show()

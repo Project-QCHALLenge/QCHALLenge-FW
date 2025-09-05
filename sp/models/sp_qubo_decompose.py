@@ -1,11 +1,11 @@
 import numpy as np
 import networkx as nx
-
 from sklearn.cluster import SpectralClustering
 
 from sp.data.sp_data import SPData
 
-class SPDecomposer: 
+
+class SPDecomposer:
     def __init__(self, data, decomposition_type="clustering") -> None:
         self.data=data
         self.subproblems = []

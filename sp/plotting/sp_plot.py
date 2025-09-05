@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt   
 import networkx as nx
 import matplotlib.cm as cm
+from abstract.plot.abstract_plot import AbstractPlot
 
-class SPPlot():
+
+class SPPlot(AbstractPlot):
      def __init__(self, evaluation = None, data = None):
           if data:
                self.data = data
@@ -11,7 +13,7 @@ class SPPlot():
                self.data = evaluation.data
                self.evaluation = evaluation
 
-     def plot(self, hide_never_covered = True):
+     def plot_solution(self, hide_never_covered = True):
           pos = {node: node for node in self.data.G.nodes()}
           pos_opt= {node: node for node in self.evaluation.O.nodes()}
 

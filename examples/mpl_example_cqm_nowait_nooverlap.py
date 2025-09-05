@@ -20,5 +20,5 @@ print(f"solution clean: {solution}")
 
 print(f"objective = {evaluation.get_objective()}")
 
-fig = MPLPlot(evaluation).plot()
+fig = MPLPlot(evaluation).plot_solution()
 fig.show()

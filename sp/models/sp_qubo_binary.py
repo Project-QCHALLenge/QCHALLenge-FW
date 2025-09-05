@@ -1,10 +1,10 @@
 import time
 import math
-
+from abstract.models.abstract_model import AbstractModel
 import numpy as np
 
 
-class QuboSPBinary:
+class QuboSPBinary(AbstractModel):
     def __init__(self, data, P=2, W=0, distance = True, reduced=False, **params) -> None:
         self.data = data
         self.reduced = reduced
@@ -143,6 +143,9 @@ class QuboSPBinary:
 
 
         return slacklist, slacksize, lidar_indices
+
+    def build_model(self, *args, **kwargs):
+        self.__build_model()
 
     def __build_model(self):
 

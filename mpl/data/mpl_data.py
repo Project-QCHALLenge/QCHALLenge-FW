@@ -1,4 +1,7 @@
-class MPLData:
+from abstract.data.abstract_data import AbstractData
+
+
+class MPLData(AbstractData):
     def __init__(self, params):
         # number of A and B type jobs
         self.N_A = params["N_A"]
@@ -61,7 +64,12 @@ class MPLData:
             "timelimit": int(data["timelimit"]) if "timelimit" in data else 60
         }
         return cls(params)
-    
+
+
+    @classmethod
+    def from_json(cls,  *args, **kwargs):
+        raise NotImplementedError
+
     def get_num_variables(self):
         # based on the formula for theoretical num vars from scaling
         return (self.N_A + self.N_B) * 2 * self.R * 4 * self.T + self.T

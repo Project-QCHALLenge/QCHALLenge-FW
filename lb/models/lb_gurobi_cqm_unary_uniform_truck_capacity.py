@@ -6,11 +6,11 @@ from gurobipy import GRB
 import numpy as np
 import itertools
 from lb.models.lb_cqm_uniform_truck_capacity import LBCQMUniformTruckCapacity
-
+from abstract.models.abstract_model import AbstractModel
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-class LBGurobiCQMUnaryUniformTruckCapacity(LBAbstractModel):
+class LBGurobiCQMUnaryUniformTruckCapacity(LBAbstractModel, AbstractModel):
 
     def _create_variables(self):
         self.decision_variables = self.model.addVars(self.valid_indices,

@@ -1,8 +1,10 @@
 import networkx as nx
 
 from copy import deepcopy
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
-class SPEvaluation():
+
+class SPEvaluation(AbstractEvaluation):
 
     def __init__(self, data, solution):
         self.data = data

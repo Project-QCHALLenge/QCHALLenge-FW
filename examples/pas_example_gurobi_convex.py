@@ -26,5 +26,5 @@ for constraint, violations in eval.check_solution().items():
         print(f"contraint {constraint} was violated {len(violations)} times")
 
 # create a plot
-plt = PASPlot(eval).plot(title=f"PAS with {problem.m} machines and {problem.j} jobs")
+plt = PASPlot(eval).plot_solution(title=f"PAS with {problem.m} machines and {problem.j} jobs")
 plt.show()

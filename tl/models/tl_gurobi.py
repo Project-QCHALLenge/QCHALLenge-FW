@@ -4,7 +4,7 @@ from gurobipy import GRB
 
 import sys
 import os
-
+from abstract.models.abstract_model import AbstractModel
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 # local import
@@ -12,7 +12,7 @@ from tl.evaluation.tl_solution import Tl2D_Solution
 from tl.models.tl_generic import Tl2D_Generic
 
 
-class TLD2D_Gurobi(Tl2D_Generic):
+class TLD2D_Gurobi(Tl2D_Generic, AbstractModel):
     """This functions implements an 2D case of the truck loading problem"""
 
     model: gp.Model

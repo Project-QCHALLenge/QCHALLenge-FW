@@ -1,8 +1,9 @@
 import time
-
+from abstract.models.abstract_model import AbstractModel
 import pyscipopt as scip
 
-class SPScip:
+
+class SPScip(AbstractModel):
 
     def __init__(self, data):
         self.data = data

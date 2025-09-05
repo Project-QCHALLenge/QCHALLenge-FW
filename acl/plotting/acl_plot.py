@@ -5,8 +5,10 @@ from acl.data.acl_data import ACLData
 from typing import Set
 import os
 import re
+from abstract.plot.abstract_plot import AbstractPlot
 
-class ACLPlot:
+
+class ACLPlot(AbstractPlot):
     """A plotting class which converts"""
     def __init__(self, evaluation, d_var_exists=True):
         self.data = evaluation.data
@@ -881,6 +883,9 @@ class ACLPlot:
                 plt.close(f)
         plt.show()
 
+    def plot_solution(self, *args, **kwargs):
+        self.show()
+
     def show(self, version=1):
         if version == 1:
             versions = [i for i in range(len(self.data.truck_list))]
@@ -927,7 +932,7 @@ def subplot_plots(complexity, fit_complexity, x_data, fit_x_data, ax, Qubo, Old_
         ax.scatter(x_data, _compl, label=name)
 
     for name, _compl in fit_complexity.items():
-        ax.plot(fit_x_data, _compl)
+        ax.plot_solution(fit_x_data, _compl)
 
     ax.set_xlabel("Number of cars k")
     ax.set_ylabel("Number of Variables")

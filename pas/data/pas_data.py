@@ -1,6 +1,7 @@
 import random
 import json
 
+from abstract.data.abstract_data import AbstractData
 import numpy as np
 import numpy.typing as npt
 
@@ -9,8 +10,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from copy import deepcopy
 
+
 @dataclass(order=True)
-class PASData:
+class PASData(AbstractData):
     """ Dataclass for the PAS data."""
     num_variables: int = field(init=False, repr=False)
     m: int
@@ -101,6 +103,7 @@ class PASData:
         with open(file_path, 'r') as json_file:
             data = json.load(json_file)
         return cls(**data)
+
 
     @classmethod
     def from_random(cls, m: int, j: int = None, alpha: float = 1.0, seed: int = None):

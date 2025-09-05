@@ -4,6 +4,8 @@ from typing import TypedDict, Union
 import numpy as np
 import itertools
 import re
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
+
 
 # have to change to my format
 SolutionType = dict[
@@ -12,7 +14,7 @@ SolutionType = dict[
 ]
 
 
-class ACLEvaluation:
+class ACLEvaluation(AbstractEvaluation):
     """
     Evaluation of a solution to the PAS problem.
     """

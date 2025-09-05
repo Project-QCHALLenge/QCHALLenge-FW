@@ -5,13 +5,14 @@ import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.colors as mcolors
 import plotly.graph_objects as go
-
+from abstract.plot.abstract_plot import AbstractPlot
 from io import BytesIO
+
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-class MPLPlot:
+class MPLPlot(AbstractPlot):
 
     def __init__(self, evaluation):
         self.df = evaluation.solution
@@ -26,7 +27,7 @@ class MPLPlot:
         self.total_jobs = len(self.JOBS_A) + len(self.JOBS_B)
         self.machine_names = self.data.machine_names
 
-    def plot(self):
+    def plot_solution(self):
         # Ensure the 'Start' and 'Finish' columns are numeric
         self.df['Start'] = pd.to_numeric(self.df['Start'], downcast='integer')
         self.df['Finish'] = pd.to_numeric(self.df['Finish'], downcast='integer')
@@ -74,7 +75,7 @@ class MPLPlot:
 
         return plt
     
-    def plot(self):
+    def plot_solution(self):
         # Ensure the 'Start' and 'Finish' columns are numeric
         self.df['Start'] = pd.to_numeric(self.df['Start'], downcast='integer')
         self.df['Finish'] = pd.to_numeric(self.df['Finish'], downcast='integer')

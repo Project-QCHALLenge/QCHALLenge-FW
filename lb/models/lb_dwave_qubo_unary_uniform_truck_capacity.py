@@ -1,6 +1,7 @@
 import itertools
 import time
 
+from abstract.models.abstract_model import AbstractModel
 from lb.models.lb_qubo_uniform_truck_capacity import LBQUBOUnaryUniformTruckCapacity
 import os
 from lb.data.lb_data import LBData
@@ -8,7 +9,7 @@ from lb.models.lb_abstract_model import LBAbstractModel
 import numpy as np
 
 
-class LBDWAVEQUBOUnaryUniformTruckCapacity(LBAbstractModel):
+class LBDWAVEQUBOUnaryUniformTruckCapacity(LBAbstractModel, AbstractModel):
 
     def __init__(self, data: LBData):
         super().__init__(data)
@@ -39,10 +40,10 @@ class LBDWAVEQUBOUnaryUniformTruckCapacity(LBAbstractModel):
         self.Q, _, _ = LBQUBOUnaryUniformTruckCapacity(self.data).assemble()
 
     def _create_variables(self):
-        pass
+        raise NotImplementedError
 
     def _create_data_structures(self):
-        pass
+        raise NotImplementedError
 
     def set_initial_solution(self, solution):
-        pass
+        raise NotImplementedError

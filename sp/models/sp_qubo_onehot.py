@@ -3,8 +3,10 @@ from dwave.system import DWaveSampler, EmbeddingComposite
 from dwave.samplers import SimulatedAnnealingSampler
 import numpy as np
 import time
+from abstract.models.abstract_model import AbstractModel
 
-class QuboSPOnehot: 
+
+class QuboSPOnehot(AbstractModel):
     def __init__(self, data, P1 = 1, P2 = 2, P3 = 2) -> None:
         self.data=data
         #Ob jeder Straßenpunkt abgedeckt werden kann wird hier nicht geprüft
@@ -55,6 +57,8 @@ class QuboSPOnehot:
 
         return solution_dict_sa
 
+    def build_model(self, *args, **kwargs):
+        self.__compute_QUBO_Matrix_onehot(self.P1, self.P2, self.P3)
 
     def __compute_QUBO_Matrix_onehot(self, P1, P2, P3): 
         slacksize=0

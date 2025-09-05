@@ -20,5 +20,5 @@ for constraint, violations in evaluation.check_solution().items():
     if len(violations) > 0:
         print(f"contraint {constraint} was violated {len(violations)} times")
 
-fig = MPLPlot(evaluation).plot()
+fig = MPLPlot(evaluation).plot_solution()
 fig.show()
