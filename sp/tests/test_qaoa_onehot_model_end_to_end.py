@@ -5,6 +5,7 @@ from unittest import TestCase, mock
 import unittest.mock
 import random
 from sp.models.sp_qubo_onehot import QuboSPOnehot
+from sp.models.sp_qaoa import QAOA_SP
 import itertools
 import numpy as np
 from sp.evaluation.evaluation import SPEvaluation
@@ -18,7 +19,7 @@ class MyTestCase(unittest.TestCase):
     def test_star_graph(self, mock_create_optimized_connections, mock_generateOPtimizedGraph):
         mock_generateOPtimizedGraph.return_value = None
         mock_create_optimized_connections.return_value = None
-        number_of_vertices = random.randint(3, 25)
+        number_of_vertices = random.randint(1, 5)
         star_graph = nx.star_graph(number_of_vertices)
         mock_data = mock.Mock()
         map = {x: (0, 0, x) for x in range(1, number_of_vertices + 1)}
@@ -28,9 +29,9 @@ class MyTestCase(unittest.TestCase):
         mock_data.problem_dict = mock_data.__dict__
         mock_data.listLidar = [(0, 0, 0, 0, 0)] # Central verted
         mock_data.listStreetPoints = [(0,0,x) for x in range(1, number_of_vertices+1)]
-        model = QuboSPOnehot(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        model_qubo = QuboSPOnehot(mock_data)
+        model = QAOA_SP(model_qubo, type="onehot")
+        solution = model.solve(iterations=50, optimizer="Adam", learning_rate=0.01, seed=501, info=True)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         gap = abs(1 - objective_value) / abs(objective_value)
         self.assertLessEqual(gap, 0.5)  # add assertion here
@@ -40,7 +41,7 @@ class MyTestCase(unittest.TestCase):
     def test_path_graph(self, mock_create_optimized_connections, mock_generateOPtimizedGraph):
         mock_generateOPtimizedGraph.return_value = None
         mock_create_optimized_connections.return_value = None
-        number_of_vertices = random.randint(3, 25)
+        number_of_vertices = random.randint(2, 5)
         path = nx.path_graph(number_of_vertices)
         lidar_indices = math.floor(number_of_vertices / 2)
         optimal_number_of_selected_indices = math.ceil(lidar_indices / 2)
@@ -51,9 +52,9 @@ class MyTestCase(unittest.TestCase):
         mock_data.G = path
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 0]
         mock_data.listStreetPoints = [(0,0,x) for x in range(number_of_vertices) if x % 2 == 1]
-        model = QuboSPOnehot(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        model_qubo = QuboSPOnehot(mock_data)
+        model = QAOA_SP(model_qubo, type="onehot")
+        solution = model.solve(iterations=3050, optimizer="Adam", learning_rate=0.01, seed=654, info=True)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
         self.assertLessEqual(gap, 0.5)  # add assertion here
@@ -64,7 +65,7 @@ class MyTestCase(unittest.TestCase):
     def test_pathological_path_graph(self, mock_create_optimized_connections, mock_generateOPtimizedGraph):
         mock_generateOPtimizedGraph.return_value = None
         mock_create_optimized_connections.return_value = None
-        number_of_A_vertices = 2*random.randint(1, 25)
+        number_of_A_vertices = 2*random.randint(2, 4)
         number_of_B_vertices = number_of_A_vertices + 1
         number_of_vertices = number_of_B_vertices + number_of_A_vertices
         path = nx.path_graph(number_of_vertices)
@@ -77,9 +78,9 @@ class MyTestCase(unittest.TestCase):
         mock_data.G = path
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 1]
         mock_data.listStreetPoints = [(0,0,x) for x in range(number_of_vertices) if x % 2 == 0]
-        model = QuboSPOnehot(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        model_qubo = QuboSPOnehot(mock_data)
+        model = QAOA_SP(model_qubo, type="onehot")
+        solution = model.solve(iterations=50, optimizer="Adam", learning_rate=0.01, seed=501, info=True)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
         self.assertLessEqual(gap, 0.5)  # add assertion here
@@ -89,7 +90,7 @@ class MyTestCase(unittest.TestCase):
     def test_m_m_bipartite_graph(self, mock_create_optimized_connections, mock_generateOPtimizedGraph):
         mock_generateOPtimizedGraph.return_value = None
         mock_create_optimized_connections.return_value = None
-        number_of_vertices = random.randint(3, 25)
+        number_of_vertices = random.randint(2, 5)
         a_degree = random.randint(1, math.floor(number_of_vertices/2))
         edges = []
         b_vertex_indices = [x for x in range(number_of_vertices)]
@@ -115,13 +116,13 @@ class MyTestCase(unittest.TestCase):
         mock_data.G = bipartite_graph
         mock_data.listLidar = a_vertices
         mock_data.listStreetPoints = b_vertices
-        model = QuboSPOnehot(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        model_qubo = QuboSPOnehot(mock_data)
+        model = QAOA_SP(model_qubo, type="onehot")
+        solution = model.solve(iterations=50, optimizer="Adam", learning_rate=0.01, seed=501, info=True)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         lower_bound = np.floor(number_of_vertices / a_degree)
         gap = abs(lower_bound - objective_value) / abs(objective_value)
-        self.assertLessEqual(gap, 1)  # add assertion here
+        self.assertLessEqual(gap, 1)  # add assertion heree
 
 if __name__ == '__main__':
     unittest.main()

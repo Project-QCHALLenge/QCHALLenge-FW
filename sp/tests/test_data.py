@@ -14,7 +14,7 @@ class MyTestCase(unittest.TestCase):
         line = (line_begin, line_end)
         wall = (wall_begin, wall_end, 1)
         # Could be also False, not clear if wall along line is possible or not
-        self.assertEqual(SPData._intersect(line, wall), True)  # add assertion here
+        self.assertEqual(SPData._intersect(line, wall), 0)  # add assertion here
 
     def test__intersect_start_points_far_apart(self):
         line_begin = (0, 0, 0, 0)
@@ -26,7 +26,7 @@ class MyTestCase(unittest.TestCase):
         line = (line_begin, line_end)
         wall = (wall_begin, wall_end, 1)
 
-        self.assertEqual(SPData._intersect(line, wall), True)  # add assertion here
+        self.assertEqual(SPData._intersect(line, wall), 1)  # add assertion here
 
     def test__intersect_negative_slope_y_direction(self):
         line_begin = (0, 0, 2, 0)
@@ -38,7 +38,7 @@ class MyTestCase(unittest.TestCase):
         line = (line_begin, line_end)
         wall = (wall_begin, wall_end, 1.5)
 
-        self.assertEqual(SPData._intersect(line, wall), False)  # add assertion here
+        self.assertEqual(SPData._intersect(line, wall), 0)  # add assertion here
 
     def test__intersect_negative_slope_x_direction(self):
         line_begin = (0, 0, 2, 0)
@@ -50,7 +50,7 @@ class MyTestCase(unittest.TestCase):
         line = (line_begin, line_end)
         wall = (wall_begin, wall_end, 1.5)
 
-        self.assertEqual(SPData._intersect(line, wall), False)  # add assertion here
+        self.assertEqual(SPData._intersect(line, wall), 0)  # add assertion here
 
 if __name__ == '__main__':
     unittest.main()

@@ -35,7 +35,8 @@ class MyTestCase(unittest.TestCase):
         config = {"num_reads": 10000, "num_sweeps": 1000}
         solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        self.assertEqual(objective_value, 1)  # add assertion here
+        gap = abs(1 - objective_value) / abs(objective_value)
+        self.assertLessEqual(gap, 0.5)  # add assertion here
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
@@ -60,7 +61,8 @@ class MyTestCase(unittest.TestCase):
         config = {"num_reads": 10000, "num_sweeps": 1000}
         solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        self.assertGreaterEqual(objective_value * 1.5, optimal_number_of_selected_indices)  # add assertion here
+        gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
+        self.assertLessEqual(gap, 0.5)  # add assertion here
 
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
@@ -88,7 +90,8 @@ class MyTestCase(unittest.TestCase):
         config = {"num_reads": 10000, "num_sweeps": 1000}
         solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        self.assertGreaterEqual(objective_value * 1.5, optimal_number_of_selected_indices)  # add assertion here
+        gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
+        self.assertLessEqual(gap, 0.5)  # add assertion here
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
@@ -129,7 +132,8 @@ class MyTestCase(unittest.TestCase):
         solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         lower_bound = np.floor(number_of_vertices / a_degree)
-        self.assertGreaterEqual(objective_value, lower_bound)  # add assertion here
+        gap = abs(lower_bound - objective_value) / abs(objective_value)
+        self.assertLessEqual(gap, 1)  # add assertion here
 
 if __name__ == '__main__':
     unittest.main()

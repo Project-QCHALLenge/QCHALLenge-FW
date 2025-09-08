@@ -64,7 +64,7 @@ class MyTestCase(unittest.TestCase):
         objective_value = model.model.objVal
         self.assertEqual(objective_value, optimal_number_of_selected_indices)  # add assertion here
 
-    def test_k_m_m_bipartite_graph(self):
+    def test_m_m_bipartite_graph(self):
         number_of_vertices = random.randint(3, 25)
         a_degree = random.randint(1, math.floor(number_of_vertices/2))
         edges = []
