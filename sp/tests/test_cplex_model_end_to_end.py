@@ -7,6 +7,7 @@ import random
 from sp.models.sp_cplex import CPlexSP
 import itertools
 import numpy as np
+from sp.evaluation.evaluation import SPEvaluation
 
 
 class MyTestCase(unittest.TestCase):

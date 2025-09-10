@@ -145,5 +145,7 @@ class TestPASGurobi(unittest.TestCase):
         self.assertEqual(nr_of_violated_constraint, 0)
 
         self.assertEqual(objective, (nr_of_jobs - 1) - nr_of_jobs * value)  # add assertion here
+
+
 if __name__ == '__main__':
     unittest.main()

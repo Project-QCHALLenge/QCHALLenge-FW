@@ -9,9 +9,33 @@ import itertools
 import numpy as np
 from sp.evaluation.evaluation import SPEvaluation
 from dwave.samplers import SimulatedAnnealingSampler
+import dimod
+import gurobipy as gp
+from gurobipy import GRB
 
+class TestQuboBinaryModel(unittest.TestCase):
 
-class MyTestCase(unittest.TestCase):
+    @staticmethod
+    def create_gurobi_model_form_Q(Q):
+        model = gp.Model("QUBO")
+        variables = model.addVars(range(Q.shape[0]), vtype=GRB.BINARY)
+        x = gp.MVar.fromlist(list(variables.values()))
+        model.setObjective(x.T @ Q @ x, GRB.MINIMIZE)
+        return model
+
+    @staticmethod
+    def solve_function(Q, *args, **kwargs):
+        model = TestQuboBinaryModel.create_gurobi_model_form_Q(Q)
+        model.optimize()
+        all_vars = model.getVars()
+        values = model.getAttr("X", all_vars)
+        names = model.getAttr("VarName", all_vars)
+        answer = np.zeros(shape=(Q.shape[0]))
+        for name, val in zip(names, values):
+            index = int(name.replace("C", ""))
+            answer[index] = val
+        answer_object = dimod.SampleSet.from_samples(answer, "BINARY", model.ObjVal)
+        return answer_object
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
@@ -32,11 +56,9 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, 0)] # Central verted
         mock_data.listStreetPoints = [(0,0,x) for x in range(1, number_of_vertices+1)]
         model = QuboSPBinary(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        solution = model.solve(TestQuboBinaryModel.solve_function)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        gap = abs(1 - objective_value) / abs(objective_value)
-        self.assertLessEqual(gap, 0.5)  # add assertion here
+        self.assertEqual(objective_value, 1)  # add assertion here
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
@@ -58,11 +80,9 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 0]
         mock_data.listStreetPoints = [(0,0,x) for x in range(number_of_vertices) if x % 2 == 1]
         model = QuboSPBinary(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        solution = model.solve(TestQuboBinaryModel.solve_function)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
-        self.assertLessEqual(gap, 0.5)  # add assertion here
+        self.assertEqual(optimal_number_of_selected_indices, objective_value)  # add assertion here
 
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
@@ -80,18 +100,16 @@ class MyTestCase(unittest.TestCase):
         optimal_number_of_selected_indices = math.ceil(lidar_indices / 2) + 1
         mock_data = mock.Mock()
         mock_data.walls = []
-        map = {x: (0, 0, 0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 0}
-        map.update({x: (0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 1})
+        map = {x: (0, 0, 0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 1}
+        map.update({x: (0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 0})
         path = nx.relabel_nodes(path, map)
         mock_data.G = path
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 1]
         mock_data.listStreetPoints = [(0,0,x) for x in range(number_of_vertices) if x % 2 == 0]
         model = QuboSPBinary(mock_data)
-        config = {"num_reads": 10000, "num_sweeps": 1000}
-        solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
+        solution = model.solve(TestQuboBinaryModel.solve_function)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
-        gap = abs(optimal_number_of_selected_indices - objective_value) / abs(objective_value)
-        self.assertLessEqual(gap, 0.5)  # add assertion here
+        self.assertEqual(optimal_number_of_selected_indices, objective_value)  # add assertion here
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
@@ -132,8 +150,7 @@ class MyTestCase(unittest.TestCase):
         solution = model.solve(SimulatedAnnealingSampler().sample_qubo, **config)["solution"]
         objective_value = SPEvaluation(mock_data, solution).get_objective()
         lower_bound = np.floor(number_of_vertices / a_degree)
-        gap = abs(lower_bound - objective_value) / abs(objective_value)
-        self.assertLessEqual(gap, 1)  # add assertion here
+        self.assertGreaterEqual(objective_value, lower_bound)  # add assertion here
 
 if __name__ == '__main__':
     unittest.main()

@@ -72,8 +72,8 @@ class MyTestCase(unittest.TestCase):
         lidar_indices = math.floor(number_of_vertices / 2)
         optimal_number_of_selected_indices = math.ceil(lidar_indices / 2) + 1
         mock_data = mock.Mock()
-        map = {x: (0, 0, 0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 0}
-        map.update({x: (0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 1})
+        map = {x: (0, 0, 0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 1}
+        map.update({x: (0, 0, x) for x in range(number_of_vertices + 1) if x % 2 == 0})
         path = nx.relabel_nodes(path, map)
         mock_data.G = path
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 1]
