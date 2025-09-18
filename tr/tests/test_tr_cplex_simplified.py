@@ -2,12 +2,12 @@ import unittest
 
 from tr.data.railnetwork import *
 from tr.data.tr_data import TRData
-from tr.models.tr_gurobi import GurobiTR
+from tr.models.tr_cplex_simplified import TR_cplex_simple
 import networkx as nx
 from tr.evaluation.evaluation import TREvaluation
 from gurobipy import GRB
 import numpy as np
-
+from docplex.util.status import JobSolveStatus
 from tr.plotting.tr_plot import TRPlot
 
 
@@ -25,8 +25,8 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        answer = model.solve()["solution"]
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
         evaluation = TREvaluation(data, answer)
 
 
@@ -44,8 +44,8 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        answer = model.solve()["solution"]
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
         evaluation = TREvaluation(data, answer)
 
         self.assertEqual(evaluation.get_objective(), 2)  # add assertion here
@@ -64,8 +64,8 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2, train_3])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        answer = model.solve()["solution"]
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
         evaluation = TREvaluation(data, answer)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
@@ -80,8 +80,8 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        answer = model.solve()["solution"]
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
         evaluation = TREvaluation(data, answer)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
@@ -96,9 +96,16 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertEqual(model._grb_model.status, GRB.INFEASIBLE)  # add assertion here
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
+
+        evaluation = TREvaluation(data, answer)
+        nr_of_violated_constraint = 0
+        for constraint, violations in evaluation.check_solution().items():
+            if len(violations) > 0:
+                nr_of_violated_constraint += 1
+
+        self.assertEqual(nr_of_violated_constraint, 0)
 
     def test_integer_stations(self):
         stations = [0, 1, 2]
@@ -111,8 +118,8 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        answer = model.solve()["solution"]
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
         evaluation = TREvaluation(data, answer)
         try:
             TRPlot(evaluation)
@@ -130,10 +137,15 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
+        evaluation = TREvaluation(data, answer)
+        nr_of_violated_constraint = 0
+        for constraint, violations in evaluation.check_solution().items():
+            if len(violations) > 0:
+                nr_of_violated_constraint += 1
 
+        self.assertEqual(nr_of_violated_constraint, 0)
 
     def test_opposing_stations_fail(self):
         stations = ["A", "B"]
@@ -145,13 +157,15 @@ class MyTestCase(unittest.TestCase):
 
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
+        model = TR_cplex_simple(rail_network)
+        answer = model.solve()
+        evaluation = TREvaluation(data, answer)
+        nr_of_violated_constraint = 0
+        for constraint, violations in evaluation.check_solution().items():
+            if len(violations) > 0:
+                nr_of_violated_constraint += 1
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
-
-
-
+        self.assertEqual(nr_of_violated_constraint, 0)
 
 
 if __name__ == '__main__':

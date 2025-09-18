@@ -2,12 +2,12 @@ import unittest
 
 from tr.data.railnetwork import *
 from tr.data.tr_data import TRData
-from tr.models.tr_gurobi import GurobiTR
+from tr.models.tr_cplex import TR_cplex
 import networkx as nx
 from tr.evaluation.evaluation import TREvaluation
 from gurobipy import GRB
 import numpy as np
-
+from docplex.util.status import JobSolveStatus
 from tr.plotting.tr_plot import TRPlot
 
 
@@ -25,7 +25,7 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
+        model = TR_cplex(data)
         answer = model.solve()["solution"]
         evaluation = TREvaluation(data, answer)
 
@@ -44,7 +44,7 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
+        model = TR_cplex(data)
         answer = model.solve()["solution"]
         evaluation = TREvaluation(data, answer)
 
@@ -64,7 +64,7 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2, train_3])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
+        model = TR_cplex(data)
         answer = model.solve()["solution"]
         evaluation = TREvaluation(data, answer)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
@@ -80,7 +80,7 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
+        model = TR_cplex(data)
         answer = model.solve()["solution"]
         evaluation = TREvaluation(data, answer)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
@@ -96,9 +96,9 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertEqual(model._grb_model.status, GRB.INFEASIBLE)  # add assertion here
+        model = TR_cplex(data)
+        model._model.solve()
+        self.assertEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)  # add assertion here
 
     def test_integer_stations(self):
         stations = [0, 1, 2]
@@ -111,7 +111,7 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
+        model = TR_cplex(data)
         answer = model.solve()["solution"]
         evaluation = TREvaluation(data, answer)
         try:
@@ -130,9 +130,9 @@ class MyTestCase(unittest.TestCase):
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
+        model = TR_cplex(data)
+        model._model.solve()
+        self.assertNotEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)
 
 
     def test_opposing_stations_fail(self):
@@ -145,10 +145,10 @@ class MyTestCase(unittest.TestCase):
 
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
+        model = TR_cplex(data)
+        model._model.solve()
+        self.assertNotEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)
 
-        model = GurobiTR(data)
-        model._grb_model.optimize()
-        self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
 
 
 
