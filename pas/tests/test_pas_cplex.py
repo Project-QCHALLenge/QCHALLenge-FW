@@ -1,4 +1,7 @@
 import unittest
+
+from docplex.util.status import JobSolveStatus
+
 from pas.models.pas_cplex import CplexPAS
 from pas.data.pas_data import PASData
 import numpy as np
@@ -22,6 +25,7 @@ class TestPASCPLEX(unittest.TestCase):
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
         model = CplexPAS(data)
+        model.model.set_time_limit(300)
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
         objective = eval_object.get_objective()
@@ -31,6 +35,7 @@ class TestPASCPLEX(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(nr_of_violated_constraint, 0)
         self.assertEqual(objective, -nr_of_jobs * nr_of_machines)   # add assertion here
 
@@ -48,6 +53,7 @@ class TestPASCPLEX(unittest.TestCase):
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
         model = CplexPAS(data)
+        model.model.set_time_limit(300)
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
         objective = eval_object.get_objective()
@@ -57,6 +63,7 @@ class TestPASCPLEX(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(nr_of_violated_constraint, 0)
 
         self.assertEqual(objective, (nr_of_jobs - 1) - nr_of_jobs * value)  # add assertion here
@@ -73,7 +80,9 @@ class TestPASCPLEX(unittest.TestCase):
                          "processing_times" : processing_times, "setup_times" : setup_times,
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
+
         model = CplexPAS(data)
+        model.model.set_time_limit(300)
 
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
@@ -84,8 +93,9 @@ class TestPASCPLEX(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        # 107 is timeout code
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(nr_of_violated_constraint, 0)
-
         self.assertEqual(objective, (1.0/nr_of_machines)*nr_of_jobs**2-nr_of_machines)  # add assertion here
 
 

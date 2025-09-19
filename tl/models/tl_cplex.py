@@ -210,6 +210,7 @@ class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
 
     def solve(self, *args, **kwargs):
         self.optimize()
+        return self.model_solution
 
     def optimize(self, **config):
         """

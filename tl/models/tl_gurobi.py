@@ -212,7 +212,7 @@ class TLD2D_Gurobi(Tl2D_Generic, AbstractModel):
         model.addConstrs((
             x_length[i] + x[i] <= x[j] + (1 - u[i, j]) * data.truck_length
             for i, j in u.keys()
-        ), name="T")
+        ))
 
         model.addConstrs(
             y_length[i] + y[i] <= y[j] + (1 - v[i, j]) * data.truck_length

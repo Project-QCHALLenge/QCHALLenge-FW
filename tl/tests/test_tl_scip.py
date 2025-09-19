@@ -1,11 +1,16 @@
 import unittest
-from tl import TLGurobi, TLEvaluation
+from tl import TLScip, TLEvaluation
 from tl import TLData
 from tl.utils.tl_data_generic import TruckParameters
 import pandas as pd
 import numpy as np
 from tl import TLPlot
 from gurobipy import GRB
+
+"""
+No standard solution format
+"""
+
 
 
 class MyTestCase(unittest.TestCase):
@@ -14,8 +19,9 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLGurobi(data)
+        gurobi_model = TLScip(data)
         answer = gurobi_model.solve(**{"TimeLimit": 300})
+        print(answer)
         evaluation = TLEvaluation(data=data, solution=answer)
 
         self.assertEqual(evaluation.get_objective(), 18)  # add assertion here

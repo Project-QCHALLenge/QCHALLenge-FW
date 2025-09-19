@@ -7,6 +7,7 @@ from pas.data.pas_data import PASData
 import numpy as np
 from pas.evaluation.evaluation import EvaluationPAS
 from pas.plotting.pas_plot import PASPlot
+from gurobipy import GRB
 
 
 class TestPASGurobiConvex(unittest.TestCase):
@@ -26,6 +27,7 @@ class TestPASGurobiConvex(unittest.TestCase):
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
         model = GurobiConvexPAS(data)
+        model.model.setParam("TimeLimit", 300)
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
         objective = eval_object.get_objective()
@@ -35,6 +37,7 @@ class TestPASGurobiConvex(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)
 
         self.assertEqual(objective, -nr_of_jobs * nr_of_machines)  # add assertion here
@@ -53,6 +56,8 @@ class TestPASGurobiConvex(unittest.TestCase):
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
         model = GurobiConvexPAS(data)
+        model.model.setParam("TimeLimit", 300)
+
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
         objective = eval_object.get_objective()
@@ -62,8 +67,8 @@ class TestPASGurobiConvex(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)
-
         self.assertEqual(objective, (nr_of_jobs - 1) - nr_of_jobs * value)  # add assertion here
 
     def test_jobs_on_all_machines_uniform_p_uniform_setup_all_objectives(self):
@@ -79,8 +84,7 @@ class TestPASGurobiConvex(unittest.TestCase):
                          "eligible_machines": eligible_machines}
         data = PASData(**instance_dict)
         model = GurobiConvexPAS(data)
-        model.model.Params.LogToConsole = 1
-        model.model.Params.OutputFlag = 1
+        model.model.setParam("TimeLimit", 300)
 
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
@@ -91,8 +95,8 @@ class TestPASGurobiConvex(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)
-
         self.assertEqual(objective, (1.0/nr_of_machines)*nr_of_jobs**2-nr_of_machines)  # add assertion here
 
 
