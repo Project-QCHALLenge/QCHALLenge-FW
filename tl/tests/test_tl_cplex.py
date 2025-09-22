@@ -15,7 +15,7 @@ Cannot test for now, solution format is not implemented
 class MyTestCase(unittest.TestCase):
     def test_trivial_case(self):
         boxes = [{"index": i, "length": 1, "width": 1, "height": 0, "weight": 1} for i in range(9)]
-        truck_parameters = TruckParameters(3, 3, 0, 18)
+        truck_parameters = TruckParameters(3, 3, 0, 9)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
         model = TLCplex(data)
@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
 
         evaluation = TLEvaluation(data=data, solution=answer)
         self.assertNotEqual(model.model.solve_details.status_code, 107)
-        self.assertEqual(evaluation.get_objective(), 18)  # add assertion here
+        self.assertEqual(evaluation.get_objective(), 9)  # add assertion here
 
     def test_random(self):
         truck_length = np.random.randint(2, 20)
@@ -66,7 +66,18 @@ class MyTestCase(unittest.TestCase):
         data = TLData(truck_parameters, pd.DataFrame(boxes))
         model = TLCplex(data)
         model.model.set_time_limit(300)
-        answer = model.solve(**{"TimeLimit": 300})
+        answer = model.solve()
+
+        # Access the underlying Cplex object
+        #cplex = model.model.get_engine().get_cplex()
+
+        # Use Cplex's computeIIS method
+        #cplex.conflict.refine()
+
+        # Export the IIS to a file using the Cplex API
+        #iis_filename = "iis_output.ilp"
+        #cplex.conflict.write(filename=iis_filename)
+
         evaluation = TLEvaluation(data=data, solution=answer)
         self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), truck_length * truck_width)  # add assertion here
@@ -141,10 +152,9 @@ class MyTestCase(unittest.TestCase):
         model = TLCplex(data)
         model.model.set_time_limit(300)
         answer = model.solve(**{"TimeLimit": 300})
-        evaluation = TLEvaluation(data=data, solution=answer)
 
         self.assertNotEqual(model.model.solve_details.status_code, 107)
-        self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
+        self.assertEqual(answer, None)  # add assertion here
 
     def test_one_box_too_wide(self):
         boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 20}]
@@ -154,10 +164,10 @@ class MyTestCase(unittest.TestCase):
         model = TLCplex(data)
         model.model.set_time_limit(300)
         answer = model.solve(**{"TimeLimit": 300})
-        evaluation = TLEvaluation(data=data, solution=answer)
+
 
         self.assertNotEqual(model.model.solve_details.status_code, 107)
-        self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
+        self.assertEqual(answer, None)  # add assertion here
 
 
 if __name__ == '__main__':

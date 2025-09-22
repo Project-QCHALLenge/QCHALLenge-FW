@@ -140,10 +140,9 @@ class MyTestCase(unittest.TestCase):
         model = TLScip(data)
         model.model.setParam('limits/time', 300)
         answer = model.solve(**{"TimeLimit": 300})
-        evaluation = TLEvaluation(data=data, solution=answer)
 
         self.assertNotEqual(model.model.getStatus(), "timelimit")
-        self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
+        self.assertEqual(answer, None)  # add assertion here
 
     def test_one_box_too_wide(self):
         boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 20}]
@@ -153,10 +152,9 @@ class MyTestCase(unittest.TestCase):
         model = TLScip(data)
         model.model.setParam('limits/time', 300)
         answer = model.solve(**{"TimeLimit": 300})
-        evaluation = TLEvaluation(data=data, solution=answer)
 
         self.assertNotEqual(model.model.getStatus(), "timelimit")
-        self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
+        self.assertEqual(answer, None)  # add assertion here
 
 
 if __name__ == '__main__':

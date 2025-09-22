@@ -78,14 +78,15 @@ class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
         no_overlap_y = m.binary_var_dict(permut_boxes, name="no_overlap_y")
         self.no_overlap_y = no_overlap_y
 
+
         # define integer variables
-        x = m.integer_var_dict(self.boxes, lb=0, name="x")
+        x = m.continuous_var_dict(self.boxes, lb=0, name="x")
         self.x = x
-        y = m.integer_var_dict(self.boxes, lb=0, name="y")
+        y = m.continuous_var_dict(self.boxes, lb=0, name="y")
         self.y = y
-        x_length = m.integer_var_dict(self.boxes, name="x_length")
+        x_length = m.continuous_var_dict(self.boxes, name="x_length")
         self.x_length = x_length
-        y_length = m.integer_var_dict(self.boxes, name="y_length")
+        y_length = m.continuous_var_dict(self.boxes, name="y_length")
         self.y_length = y_length
 
         xp = m.integer_var_dict(self.boxes, lb=0, name="xp")
@@ -140,7 +141,7 @@ class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
                 == (1 - self.r[i]) * self.data.boxes.loc[i]["length"]
                 + self.data.boxes.loc[i]["width"] * self.r[i]
                 for i in self.boxes
-            )
+            ), names="ROTX"
         )
         self.model.add_constraints(
             (self.xp[i] - self.x[i] == self.x_length[i] for i in self.boxes)
@@ -152,7 +153,7 @@ class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
                 == (1 - self.r[i]) * self.data.boxes.loc[i]["width"]
                 + self.data.boxes.loc[i]["length"] * self.r[i]
                 for i in self.boxes
-            )
+            ), names="ROTY"
         )
 
         self.model.add_constraints(
@@ -210,7 +211,35 @@ class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
 
     def solve(self, *args, **kwargs):
         self.optimize()
-        return self.model_solution
+
+        """
+        
+        self.solution = Tl2D_Solution(
+            selected_boxes=selected_boxes,
+            runtime=runtime,
+            num_vars=n_var,
+            num_constrs=n_constr,
+            obj_val=self.model_solution.get_objective_value(),
+            data=self.data,
+            model_name=self.model_name,
+            violated_constraints=[],
+            gap_to_optimal=self.model_solution.solve_details.mip_relative_gap,
+        )"""
+
+
+        if self.model.solve_details.status_code != 103:
+            solution_object = self.generate_solution_overview()
+            answer = {}
+            answer["energy"] = solution_object.energy
+            answer["runtime"] = solution_object.runtime
+            answer["converted solution"] = None
+            answer["optimality_gap"] = solution_object.gap_to_optimal
+            answer["solution"] = {"model_name": self.model_name, "num_vars": solution_object.num_vars,
+                                  "solution": solution_object.selected_boxes}
+            answer["info"] = solution_object
+
+            return answer
+
 
     def optimize(self, **config):
         """
