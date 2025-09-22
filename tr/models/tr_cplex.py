@@ -330,7 +330,7 @@ class TR_cplex(AbstractModel):
         t, _, _ = self._make_dicts(solution)
         for k, v in self.upsilon.items():
             obj += t[k] - v
-        return v
+        return obj
 
     #### constraints and violation checking
 
