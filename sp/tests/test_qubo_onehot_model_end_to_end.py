@@ -16,7 +16,7 @@ from gurobipy import GRB
 
 class TestQuboOneHot(unittest.TestCase):
     @staticmethod
-    def create_gurobi_model_form_Q(Q):
+    def create_gurobi_model_from_Q(Q):
         model = gp.Model("QUBO")
         variables = model.addVars(range(Q.shape[0]), vtype=GRB.BINARY)
         x = gp.MVar.fromlist(list(variables.values()))
@@ -25,17 +25,25 @@ class TestQuboOneHot(unittest.TestCase):
 
     @staticmethod
     def solve_function(Q, *args, **kwargs):
-        model = TestQuboOneHot.create_gurobi_model_form_Q(Q)
+        if type(Q) == dimod.BinaryQuadraticModel:
+            Q = Q.to_numpy_matrix(variable_order=Q.variables)
+        model = TestQuboOneHot.create_gurobi_model_from_Q(Q)
+        model.setParam("TimeLimit", 300)
         model.optimize()
-        all_vars = model.getVars()
-        values = model.getAttr("X", all_vars)
-        names = model.getAttr("VarName", all_vars)
         answer = np.zeros(shape=(Q.shape[0]))
-        for name, val in zip(names, values):
-            index = int(name.replace("C", ""))
-            answer[index] = val
-        answer_object = dimod.SampleSet.from_samples(answer, "BINARY", model.ObjVal)
+        if model.status != GRB.TIME_LIMIT:
+            all_vars = model.getVars()
+            values = model.getAttr("X", all_vars)
+            names = model.getAttr("VarName", all_vars)
+            for name, val in zip(names, values):
+                index = int(name.replace("C", ""))
+                answer[index] = val
+            answer_object = dimod.SampleSet.from_samples(answer, "BINARY", model.ObjVal)
+        else:
+            answer_object = dimod.SampleSet.from_samples(answer, "BINARY", np.inf)
+
         return answer_object
+
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
     def test_star_graph(self, mock_create_optimized_connections, mock_generateOPtimizedGraph):

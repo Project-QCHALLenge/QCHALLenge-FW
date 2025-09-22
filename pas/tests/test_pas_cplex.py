@@ -11,8 +11,8 @@ from pas.plotting.pas_plot import PASPlot
 
 class TestPASCPLEX(unittest.TestCase):
     def test_jobs_on_all_machines_uniform_p_no_setup_only_value(self):
-        nr_of_jobs = 2 #np.random.randint(2, 10)
-        nr_of_machines = 6 #np.random.randint(2, 10)
+        nr_of_jobs = np.random.randint(2, 10)
+        nr_of_machines = np.random.randint(2, 10)
         alpha, beta = 0, 0
         values = np.zeros(shape=(nr_of_jobs, nr_of_machines))
         for m in range(nr_of_machines):

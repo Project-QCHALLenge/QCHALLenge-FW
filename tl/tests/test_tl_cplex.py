@@ -18,11 +18,12 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(3, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLCplex(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
-        print(answer)
-        evaluation = TLEvaluation(data=data, solution=answer)
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
 
+        evaluation = TLEvaluation(data=data, solution=answer)
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), 18)  # add assertion here
 
     def test_random(self):
@@ -37,13 +38,16 @@ class MyTestCase(unittest.TestCase):
         boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights_rescaled[i], "area": box_width*box_length, "volume" :0} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
         nr_of_violated_constraint = 0
         for constraint, violations in evaluation.check_solution().items():
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
+
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(nr_of_violated_constraint, 0)
         self.assertLessEqual(abs(evaluation.get_objective() - truck_length*truck_width), 1)  # add assertion here
 
@@ -60,9 +64,11 @@ class MyTestCase(unittest.TestCase):
                   "area": box_width * box_length, "volume": 0} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), truck_length * truck_width)  # add assertion here
 
     def test_fail_width_length_mix_up(self):
@@ -76,9 +82,11 @@ class MyTestCase(unittest.TestCase):
         boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights[i], "area": box_width*box_length, "volume" :0} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
-        gurobi_model = TLGurobi(data)
-        gurobi_model.model.optimize()
-        self.assertNotEqual(gurobi_model.model.status, GRB.INFEASIBLE)
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        model.model.solve()
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
+        self.assertEqual(model.model.solve_details.status_code, 103)
 
     def test_width_length_mix_up(self):
         truck_length = 13
@@ -92,9 +100,11 @@ class MyTestCase(unittest.TestCase):
                   "area": box_width * box_length, "volume": 0} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
-        gurobi_model = TLGurobi(data)
-        gurobi_model.model.optimize()
-        self.assertNotEqual(gurobi_model.model.status, GRB.INFEASIBLE)
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        model.model.solve()
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
+        self.assertEqual(model.model.solve_details.status_code, 103)
 
     def test_pick_larger_box(self):
         boxes = [{"index": 0, "length": 4, "width": 3, "height": 0, "weight": 12, "area": 12, "volume" :0},
@@ -102,10 +112,12 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), 12)  # add assertion here
 
     def test_one_box_too_heavy(self):
@@ -113,10 +125,12 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
 
@@ -125,10 +139,12 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
     def test_one_box_too_wide(self):
@@ -136,10 +152,12 @@ class MyTestCase(unittest.TestCase):
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
-        gurobi_model = TLGurobi(data)
-        answer = gurobi_model.solve(**{"TimeLimit": 300})
+        model = TLCplex(data)
+        model.model.set_time_limit(300)
+        answer = model.solve(**{"TimeLimit": 300})
         evaluation = TLEvaluation(data=data, solution=answer)
 
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
 
