@@ -20,6 +20,12 @@ class TLD2D_Gurobi(Tl2D_Generic, AbstractModel):
 
     def __init__(self, data):
         super().__init__(data)
+
+        if data.truck_width > data.truck_length:
+            old_width = data.truck_width
+            data.truck_width = data.truck_length
+            data.truck_length = old_width
+
         self.model = self.build_model()
 
     def solve(self, **params):

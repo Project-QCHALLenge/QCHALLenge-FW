@@ -10,7 +10,7 @@ from gurobipy import GRB
 
 class MyTestCase(unittest.TestCase):
     def test_trivial_case(self):
-        boxes = [{"index": i, "length": 1, "width": 1, "height": 0, "weight": 1, "area": 1, "volume" :0} for i in range(18)]
+        boxes = [{"index": i, "length": 1, "width": 1, "height": 0, "weight": 1} for i in range(18)]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
@@ -31,7 +31,8 @@ class MyTestCase(unittest.TestCase):
         truck_capacity = np.random.randint(1, 20)
         box_weights = np.random.random(size=(number_of_boxes))
         box_weights_rescaled = (truck_capacity) * (box_weights / sum(box_weights))
-        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights_rescaled[i], "area": box_width*box_length, "volume" :0} for i in range(number_of_boxes)]
+        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights_rescaled[i]}
+                 for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
         gurobi_model = TLGurobi(data)
@@ -56,8 +57,8 @@ class MyTestCase(unittest.TestCase):
         truck_capacity = 2
         box_weights = np.random.random(size=(number_of_boxes))
         box_weights_rescaled = (truck_capacity) * (box_weights / sum(box_weights))
-        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights_rescaled[i],
-                  "area": box_width * box_length, "volume": 0} for i in range(number_of_boxes)]
+        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights_rescaled[i]}
+                 for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
         gurobi_model = TLGurobi(data)
@@ -75,7 +76,7 @@ class MyTestCase(unittest.TestCase):
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
         box_weights = np.zeros(shape=(number_of_boxes))
-        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights[i], "area": box_width*box_length, "volume" :0} for i in range(number_of_boxes)]
+        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights[i]} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
         gurobi_model = TLGurobi(data)
@@ -92,8 +93,7 @@ class MyTestCase(unittest.TestCase):
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
         box_weights = np.zeros(shape=(number_of_boxes))
-        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights[i],
-                  "area": box_width * box_length, "volume": 0} for i in range(number_of_boxes)]
+        boxes = [{"index": i, "length": box_length, "width": box_width, "height": 0, "weight": box_weights[i]} for i in range(number_of_boxes)]
         truck_parameters = TruckParameters(truck_length, truck_width, 0, truck_capacity)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
         gurobi_model = TLGurobi(data)
@@ -103,8 +103,8 @@ class MyTestCase(unittest.TestCase):
         self.assertNotEqual(gurobi_model.model.status, GRB.INFEASIBLE)
 
     def test_pick_larger_box(self):
-        boxes = [{"index": 0, "length": 4, "width": 3, "height": 0, "weight": 12, "area": 12, "volume" :0},
-                 {"index": 1, "length": 3, "width": 3, "height": 0, "weight": 9, "area": 9, "volume" :0}]
+        boxes = [{"index": 0, "length": 4, "width": 3, "height": 0, "weight": 12},
+                 {"index": 1, "length": 3, "width": 3, "height": 0, "weight": 9}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
@@ -117,7 +117,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(evaluation.get_objective(), 12)  # add assertion here
 
     def test_one_box_too_heavy(self):
-        boxes = [{"index": 0, "length": 1, "width": 1, "height": 0, "weight": 20, "area": 1, "volume" :0}]
+        boxes = [{"index": 0, "length": 1, "width": 1, "height": 0, "weight": 20}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
@@ -131,7 +131,7 @@ class MyTestCase(unittest.TestCase):
 
 
     def test_one_box_too_long(self):
-        boxes = [{"index": 0, "length": 7, "width": 1, "height": 0, "weight": 20, "area": 7, "volume" :0}]
+        boxes = [{"index": 0, "length": 7, "width": 1, "height": 0, "weight": 20}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
@@ -144,7 +144,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
     def test_one_box_too_wide(self):
-        boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 20, "area": 7, "volume": 0}]
+        boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 20}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 

@@ -22,16 +22,7 @@ class TLData(TruckLoadingData):
                             * truck_parameters.truck_length * truck_parameters.truck_width # possible box origins in the truck
                             * 2 # rotation
                             ) 
-        
-    @classmethod
-    def create_problem(cls,
-        stations: int = 2,
-        trains: int = 2,
-        connectivity: float = 0.5,
-        seed: int = None,
-        min_path_len: int = 1,
-        method: str = "gnp",):
-        return cls.from_random(stations, trains, connectivity, seed, min_path_len, method)
+
     
     @classmethod
     def create_problem(cls, num_boxes: int = 5, seed: int = 1):
