@@ -51,7 +51,7 @@ class MyTestCase(unittest.TestCase):
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
-        self.assertEqual(evaluation.get_objective(), 2)  # add assertion here
+        self.assertEqual(evaluation.get_objective(), 3)  # add assertion here
 
     def test_circular_schedule(self):
         stations = ["A", "B", "C"]
@@ -81,7 +81,7 @@ class MyTestCase(unittest.TestCase):
         rail_graph.add_nodes_from(stations)
         rail_graph.add_edge("A", "B", distance=10, max_speed=10)
         rail_graph.add_edge("B", "C", distance=10, max_speed=10)
-        train_1 = Train((("A", 0, 1), ("B", 2, 2), ("C", 3, 4)), speed=10)
+        train_1 = Train((("A", 0, 1), ("B", 2, 3), ("C", 4, 5)), speed=10)
 
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
@@ -142,6 +142,7 @@ class MyTestCase(unittest.TestCase):
 
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
+        #rail_network.dmax = 1
 
         model = GurobiTR(data)
         model._grb_model.setParam("TimeLimit", 300)

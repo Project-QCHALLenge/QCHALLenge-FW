@@ -145,7 +145,7 @@ class MyTestCase(unittest.TestCase):
 
         model = TR_cplex(data)
         model._model.set_time_limit(300)
-        model._model.solve()
+        model.solve()
 
         self.assertNotEqual(model._model.solve_details.status_code, 107)
         self.assertNotEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)
