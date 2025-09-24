@@ -126,6 +126,9 @@ class TestPASGurobi(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+        plt = PASPlot(eval_object).plot_solution(title=f"PAS with {data.m} machines and {data.j} jobs")
+        plt.show()
+
         self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)
 

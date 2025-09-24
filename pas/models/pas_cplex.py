@@ -130,8 +130,8 @@ class CplexPAS(AbstractModel):
         job_value = self.job_value_expression()
         setup_times = self.setup_times_expression()
         normalize_times = self.normalize_times_expression()
-        objective_expr = (- job_value + setup_times +
-                          normalize_times)
+        objective_expr = (- job_value + self.data.alpha * setup_times +
+                          self.data.beta * normalize_times)
         self.__model.set_objective(
             sense=Sense.Min.value,
             expr=objective_expr
