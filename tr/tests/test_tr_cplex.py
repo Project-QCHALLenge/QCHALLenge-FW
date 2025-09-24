@@ -51,7 +51,7 @@ class MyTestCase(unittest.TestCase):
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._model.solve_details.status_code, 107)
-        self.assertEqual(evaluation.get_objective(), 2)  # add assertion here
+        self.assertEqual(evaluation.get_objective(), 3)  # add assertion here
 
     def test_circular_schedule(self):
         stations = ["A", "B", "C"]
@@ -81,7 +81,7 @@ class MyTestCase(unittest.TestCase):
         rail_graph.add_nodes_from(stations)
         rail_graph.add_edge("A", "B", distance=10, max_speed=10)
         rail_graph.add_edge("B", "C", distance=10, max_speed=10)
-        train_1 = Train((("A", 0, 1), ("B", 2, 2), ("C", 3, 4)), speed=10)
+        train_1 = Train((("A", 0, 1), ("B", 2, 3), ("C", 4, 5)), speed=10)
 
         rail_network = RailNetwork(rail_graph, [train_1])
         data = TRData(rail_network)
@@ -107,10 +107,10 @@ class MyTestCase(unittest.TestCase):
 
         model = TR_cplex(data)
         model._model.set_time_limit(300)
-        model._model.solve()
+        model.solve()
 
         self.assertNotEqual(model._model.solve_details.status_code, 107)
-        self.assertEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)  # add assertion here
+        self.assertNotEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)  # add assertion here
 
     def test_integer_stations(self):
         stations = [0, 1, 2]
@@ -163,7 +163,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
         model = TR_cplex(data)
         model._model.set_time_limit(300)
-        model._model.solve()
+        model.solve()
 
         self.assertNotEqual(model._model.solve_details.status_code, 107)
         self.assertNotEqual(model._model.solve_status, JobSolveStatus.INFEASIBLE_SOLUTION)

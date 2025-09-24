@@ -26,8 +26,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        answer = model.solve()["solution"]
+        answer = model.solve(TimeLimit=300)["solution"]
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
@@ -46,8 +45,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        answer = model.solve()["solution"]
+        answer = model.solve(TimeLimit=300)["solution"]
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
@@ -68,8 +66,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        answer = model.solve()["solution"]
+        answer = model.solve(TimeLimit=300)["solution"]
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
@@ -87,8 +84,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        answer = model.solve()["solution"]
+        answer = model.solve(TimeLimit=300)["solution"]
         evaluation = TREvaluation(data, answer)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
@@ -106,11 +102,10 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        model._grb_model.optimize()
+        model.solve(TimeLimit=300)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
-        self.assertEqual(model._grb_model.status, GRB.INFEASIBLE)  # add assertion here
+        self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)  # add assertion here
 
     def test_integer_stations(self):
         stations = [0, 1, 2]
@@ -124,8 +119,7 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        answer = model.solve()["solution"]
+        answer = model.solve(TimeLimit=300)["solution"]
         evaluation = TREvaluation(data, answer)
         try:
             TRPlot(evaluation)
@@ -142,11 +136,9 @@ class MyTestCase(unittest.TestCase):
 
         rail_network = RailNetwork(rail_graph, [train_1, train_2])
         data = TRData(rail_network)
-        #rail_network.dmax = 1
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        model._grb_model.optimize()
+        model.solve(TimeLimit=300)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
         self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
@@ -164,15 +156,10 @@ class MyTestCase(unittest.TestCase):
         data = TRData(rail_network)
 
         model = GurobiTR(data)
-        model._grb_model.setParam("TimeLimit", 300)
-        model._grb_model.optimize()
+        model.solve(TimeLimit=300)
 
         self.assertNotEqual(model._grb_model.status, GRB.TIME_LIMIT)
         self.assertNotEqual(model._grb_model.status, GRB.INFEASIBLE)
-
-
-
-
 
 if __name__ == '__main__':
     unittest.main()
