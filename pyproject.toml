@@ -28,7 +28,7 @@ dependencies = [
 
 [tool.setuptools.package-data]
 acl = ["data/*.csv"]
-sp = ["data/*.glb"]
+sp = ["data/data/*.glb"]
 
 [tool.setuptools.packages.find]
 where = ["."]
