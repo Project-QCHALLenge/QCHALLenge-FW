@@ -26,6 +26,10 @@ dependencies = [
   "ipywidgets",
 ]
 
+[tool.setuptools.package-data]
+acl = ["data/*.csv"]
+sp = ["data/*.glb"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["*"]

@@ -3,8 +3,8 @@ import bootstrap
 from sp.models import SPCplex
 from sp import SPData, SPEvaluation, SPPlot
 
-params = {"lidar_density": 0.1, "street_point_density": 0.1}
-data = SPData().create_problem_from_glb_file(**params)
+# params = {"lidar_density": 0.1, "street_point_density": 0.1}
+data = SPData().create_problem(version=3, max_radius=5,  hor_basic_distance=1, vert_basic_dist=1.5)
 SPPlot(data=data).plot_problem().show()
 
 cplex_model = SPCplex(data)
