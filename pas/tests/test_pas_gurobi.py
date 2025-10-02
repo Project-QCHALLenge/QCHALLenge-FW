@@ -3,8 +3,9 @@ from pas.models.pas_gurobi import GurobiPAS
 from pas.data.pas_data import PASData
 import numpy as np
 from pas.evaluation.evaluation import EvaluationPAS
-from pas.plotting.pas_plot import PASPlot
 from gurobipy  import GRB
+
+from pas.plotting.pas_plot import PASPlot
 
 
 class TestPASGurobi(unittest.TestCase):
@@ -34,6 +35,10 @@ class TestPASGurobi(unittest.TestCase):
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
 
+
+
+        plt = PASPlot(eval_object).plot_solution(title=f"PAS with {data.m} machines and {data.j} jobs")
+        plt.show()
         self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)
 
@@ -125,9 +130,6 @@ class TestPASGurobi(unittest.TestCase):
         for constraint, violations in eval_object.check_solution().items():
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
-
-        plt = PASPlot(eval_object).plot_solution(title=f"PAS with {data.m} machines and {data.j} jobs")
-        plt.show()
 
         self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)

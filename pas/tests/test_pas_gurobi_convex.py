@@ -6,7 +6,6 @@ from pas.models.pas_gurobi_convex import GurobiConvexPAS
 from pas.data.pas_data import PASData
 import numpy as np
 from pas.evaluation.evaluation import EvaluationPAS
-from pas.plotting.pas_plot import PASPlot
 from gurobipy import GRB
 
 
@@ -28,6 +27,7 @@ class TestPASGurobiConvex(unittest.TestCase):
         data = PASData(**instance_dict)
         model = GurobiConvexPAS(data)
         model.model.setParam("TimeLimit", 300)
+
         solution = model.solve()["solution"]
         eval_object = EvaluationPAS(data, solution)
         objective = eval_object.get_objective()
@@ -114,15 +114,6 @@ class TestPASGurobiConvex(unittest.TestCase):
         data = PASData(**instance_dict)
         model = GurobiConvexPAS(data)
         model.model.setParam("TimeLimit", 300)
-        #sol = ['x_0_-1_2', 'x_0_2_3', 'x_0_3_5', 'x_0_5_-1', 'x_1_-1_0', 'x_1_0_1', 'x_1_1_4', 'x_1_4_-1']
-        #model.dbg_remove(sol)
-        model.model.Params.LogToConsole = 1
-        model.model.Params.OutputFlag = 1
-
-        #model.model.optimize()
-        #model.model.computeIIS()
-
-        model.model.write("m.lp")
 
 
         solution = model.solve()["solution"]
@@ -134,12 +125,6 @@ class TestPASGurobiConvex(unittest.TestCase):
         for constraint, violations in eval_object.check_solution().items():
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
-
-        print([(var.VarName, var.X) for var in model.model.getVars() if var.X > 0])
-
-        # create a plot
-        plt = PASPlot(eval_object).plot_solution(title=f"PAS with {data.m} machines and {data.j} jobs")
-        plt.show()
 
         self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(nr_of_violated_constraint, 0)

@@ -7,6 +7,7 @@ import gurobipy as gp
 from gurobipy import GRB, Var
 import dimod
 
+from pas.plotting.pas_plot import PASPlot
 
 
 class TestPASQUBO(unittest.TestCase):
@@ -71,7 +72,6 @@ class TestPASQUBO(unittest.TestCase):
     def test_jobs_on_one_machines_uniform_p_uniform_setup_value_and_setup(self):
         nr_of_jobs = np.random.randint(2, 5)
         nr_of_machines = 1
-        print(nr_of_jobs, nr_of_machines)
         alpha, beta = 1, 0
         value = np.random.randint(1, 5)
         values = np.zeros(shape=(nr_of_jobs, nr_of_machines)) + value
@@ -136,13 +136,13 @@ class TestPASQUBO(unittest.TestCase):
         data = PASData(**instance_dict)
         model = QuboPAS(data)
         solution = model.solve(TestPASQUBO.solve_function)
-        eval_object = EvaluationPAS(data["solution"], solution)
+        eval_object = EvaluationPAS(data, solution["solution"])
+
         objective = eval_object.get_objective()
         nr_of_violated_constraint = 0
         for constraint, violations in eval_object.check_solution().items():
             if len(violations) > 0:
                 nr_of_violated_constraint += 1
-
         self.assertNotEqual(solution["energy"], np.inf)
         self.assertEqual(nr_of_violated_constraint, 0)
         self.assertEqual(objective, (1.0/nr_of_machines)*nr_of_jobs**2-nr_of_machines)  # add assertion here
@@ -150,8 +150,68 @@ class TestPASQUBO(unittest.TestCase):
     def test_jobs_on_one_machines_uniform_p_uniform_setup_value_and_setup_fail(self):
         nr_of_jobs = 4
         nr_of_machines = 1
-        print(nr_of_jobs, nr_of_machines)
         alpha, beta = 1, 0
+        value = np.random.randint(1, 5)
+        values = np.zeros(shape=(nr_of_jobs, nr_of_machines)) + value
+        processing_times = np.zeros(shape=(nr_of_jobs)) + 1
+        setup_times = np.zeros(shape=(nr_of_jobs, nr_of_jobs)) + 1
+        eligible_machines = [range(nr_of_machines) for i in range(nr_of_jobs)]
+        instance_dict = {"m": nr_of_machines, "j": nr_of_jobs, "alpha": alpha, "beta": beta, "job_values": values,
+                         "processing_times" : processing_times, "setup_times" : setup_times,
+                         "eligible_machines": eligible_machines}
+        data = PASData(**instance_dict)
+        model = QuboPAS(data)
+        solution = model.solve(TestPASQUBO.solve_function)
+        eval_object = EvaluationPAS(data, solution["solution"])
+        objective = eval_object.get_objective()
+
+        nr_of_violated_constraint = 0
+        for constraint, violations in eval_object.check_solution().items():
+            if len(violations) > 0:
+                nr_of_violated_constraint += 1
+
+
+
+
+        self.assertNotEqual(solution["energy"], np.inf)
+        self.assertEqual(nr_of_violated_constraint, 0)
+        self.assertEqual(objective, (nr_of_jobs - 1) - nr_of_jobs * value)  # add assertion here
+
+    def test_normalization_by_gap(self):
+        nr_of_jobs = 3
+        nr_of_machines = 2
+        alpha, beta = 0, 1
+
+        value = 1
+        values = np.zeros(shape=(nr_of_jobs, nr_of_machines)) + value
+
+        processing_times = np.zeros(shape=(nr_of_jobs)) + 1
+
+        setup_times = np.zeros(shape=(nr_of_jobs, nr_of_jobs))
+
+        eligible_machines = [[0], [0], [1]]
+        instance_dict = {"m": nr_of_machines, "j": nr_of_jobs, "alpha": alpha, "beta": beta, "job_values": values,
+                         "processing_times" : processing_times, "setup_times" : setup_times,
+                         "eligible_machines": eligible_machines}
+        data = PASData(**instance_dict)
+        model = QuboPAS(data)
+        solution = model.solve(TestPASQUBO.solve_function)
+        eval_object = EvaluationPAS(data, solution["solution"])
+        objective = eval_object.get_objective()
+        nr_of_violated_constraint = 0
+        for constraint, violations in eval_object.check_solution().items():
+            if len(violations) > 0:
+                nr_of_violated_constraint += 1
+
+
+        self.assertNotEqual(solution["energy"], np.inf)
+        self.assertEqual(nr_of_violated_constraint, 0)
+        self.assertEqual(objective, 5 - nr_of_jobs * value)  # add assertion here
+
+    def test_jobs_on_one_machines_uniform_p_uniform_correct_normalization(self):
+        nr_of_jobs = 4
+        nr_of_machines = 1
+        alpha, beta = 0, 1
         value = np.random.randint(1, 5)
         values = np.zeros(shape=(nr_of_jobs, nr_of_machines)) + value
         processing_times = np.zeros(shape=(nr_of_jobs)) + 1
@@ -174,7 +234,7 @@ class TestPASQUBO(unittest.TestCase):
 
         self.assertNotEqual(solution["energy"], np.inf)
         self.assertEqual(nr_of_violated_constraint, 0)
-        self.assertEqual(objective, (nr_of_jobs - 1) - nr_of_jobs * value)  # add assertion here
+        self.assertEqual(objective, (nr_of_jobs)**2 - nr_of_jobs * value)  # add assertion here
 
 if __name__ == '__main__':
     unittest.main()

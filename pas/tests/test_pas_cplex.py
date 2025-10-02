@@ -6,7 +6,6 @@ from pas.models.pas_cplex import CplexPAS
 from pas.data.pas_data import PASData
 import numpy as np
 from pas.evaluation.evaluation import EvaluationPAS
-from pas.plotting.pas_plot import PASPlot
 
 
 class TestPASCPLEX(unittest.TestCase):

@@ -62,7 +62,7 @@ class GurobiConvexPAS(AbstractModel):
         for machine, job in keys:
             variables[machine, job] = model.addVar(
                 vtype=gp.GRB.CONTINUOUS, 
-                lb=processing_times[job],
+                lb= processing_times[job],
                 ub=upper_bounds[machine, job], 
                 name=f'c_{machine}_{job}'
             )
@@ -183,7 +183,7 @@ class GurobiConvexPAS(AbstractModel):
         processing_times: np.array
     ):
         model.addConstr(
-            gp.quicksum(processing_times_variables.values()) == np.sum(processing_times), name="CuttingPlane"
+            gp.quicksum(processing_times_variables.values()) >= np.sum(processing_times), name="CuttingPlane"
         )
 
 
