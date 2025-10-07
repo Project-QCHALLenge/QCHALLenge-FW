@@ -33,8 +33,10 @@ class MyTestCase(unittest.TestCase):
         mock_data.listStreetPoints = [(0,0,x) for x in range(1, number_of_vertices+1)]
         mock_data.walls = []
         model_qubo = QuboSPBinary(mock_data)
-        with self.assertRaises(SystemExit):
-            QAOA_SP(model_qubo, type="binary")
+        solution = model_qubo.solve(iterations=50, optimizer="Adam", learning_rate=0.01, seed=501, info=True)["solution"]
+        objective_value = SPEvaluation(mock_data, solution).get_objective()
+        gap = abs(1 - objective_value) / abs(objective_value)
+        self.assertLessEqual(gap, 0.5)  # add assertion here
 
     @mock.patch("sp.evaluation.evaluation.SPEvaluation._SPEvaluation__generateOptimizedGraph")
     @mock.patch("sp.evaluation.evaluation.SPEvaluation.create_optimized_connections")
