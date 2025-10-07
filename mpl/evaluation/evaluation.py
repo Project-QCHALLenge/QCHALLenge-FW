@@ -126,7 +126,7 @@ class MPLEvaluation(AbstractEvaluation):
                 job_nr = (j-2*self.n_A_jobs)%self.n_B_jobs
                 jobname = f'Job {job_nr + self.n_A_jobs}'
                 job_type = f'B{job_nr}'
-            process = f"Keep-Job {job_type}" if from_to == "from" else f"Lift-Job {job_type}"
+            process = f"Lift-Job {job_type}" if from_to == "from" else f"Keep-Job {job_type}"
             temp_df = pd.DataFrame([dict(
                 JobName=jobname, 
                 Process=process, 
