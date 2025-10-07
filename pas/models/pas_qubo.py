@@ -56,8 +56,8 @@ class QuboPAS(AbstractModel):
         # Set the penalty values for the constraints:
         self.lambda_4: float = self._calculate_lambda_4()
         # offset since c_4 rewards 111111 solution
-        self.lambda_3: float = self._calculate_lambda_3() + self.lambda_4
-        self.lambda_5: float = self._calculate_lambda_5() + self.lambda_4
+        self.lambda_3: float = self._calculate_lambda_3() #+ self.lambda_4
+        self.lambda_5: float = self._calculate_lambda_5() #+ self.lambda_4
         # The model in this case is a QUBO matrix
         self.model = self.build_model()
 
@@ -245,6 +245,21 @@ class QuboPAS(AbstractModel):
 
 
     def c4_no_timesteps_skipped(self) -> npt.NDArray:
+        constraint_4 = np.zeros((self._q, self._q))
+        for m in range(self.m):
+            # iterator should be only till self._n_machines[0] - 1
+            for t in range(1, self._jobs_per_machine[m]):
+                for job1, job2 in itertools.product(self._machine_jobs[m], self._machine_jobs[m]):
+                    if job1 < job2:
+                        constraint_4[self.jmn_to_q(job1, m, t-1)][self.jmn_to_q(job2, m, t - 1)] += self.lambda_4
+                        constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job2, m, t)] += self.lambda_4
+                    if job1 == job2:
+                        constraint_4[self.jmn_to_q(job1, m, t - 1)][self.jmn_to_q(job1, m, t)] += self.lambda_4
+                        constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job1, m, t )] += self.lambda_4
+                    constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job2, m, t - 1)] -= self.lambda_4
+        return constraint_4
+
+    def c4_no_timesteps_skipped_old(self) -> npt.NDArray:
         constraint_4 = np.zeros((self._q, self._q))
         for m in range(self.m):
             # iterator should be only till self._n_machines[0] - 1

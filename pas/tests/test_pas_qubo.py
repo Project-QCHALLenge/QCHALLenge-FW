@@ -7,7 +7,6 @@ import gurobipy as gp
 from gurobipy import GRB, Var
 import dimod
 
-from pas.plotting.pas_plot import PASPlot
 
 
 class TestPASQUBO(unittest.TestCase):
