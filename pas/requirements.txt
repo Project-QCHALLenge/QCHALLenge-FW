@@ -1,6 +1,6 @@
 pandas>=2.0
 cplex>=20.1
-plotly==5.19.0
+plotly>=5.19
 docplex>=2.23
 gurobipy>=10.0,<12
 matplotlib>=3.5
