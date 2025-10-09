@@ -2,6 +2,8 @@ import json
 import random
 import os
 
+from abstract.data.abstract_data import AbstractData
+
 import pandas as pd
 
 from dataclasses import dataclass, field, asdict, is_dataclass
@@ -9,7 +11,7 @@ from pathlib import Path
 
 
 @dataclass(order=True)
-class ACLData:
+class ACLData(AbstractData):
     seed: int = 1
     K: int = 8
 

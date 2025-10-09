@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from abstract.models.abstract_model import AbstractModel
 import time
 import numpy as np
 import gurobipy as gp
@@ -8,7 +8,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-class MPLGurobiNoWaitOverlap:
+class MPLGurobiNoWaitOverlap(AbstractModel):
     def __init__(self, data, overlap = True):
 
         self.overlap = overlap

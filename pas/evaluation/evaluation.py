@@ -7,9 +7,10 @@ from re import findall
 
 from pas.data.pas_data import PASData
 from pas.data.utils import SolutionType, ErrorDict
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
 
-class EvaluationPAS:
+class EvaluationPAS(AbstractEvaluation):
     """
     Evaluation of a solution to the PAS problem.
     """

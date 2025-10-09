@@ -4,7 +4,6 @@ from lb.data.lb_data import LBData
 import numpy as np
 import itertools
 import bisect
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 

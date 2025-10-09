@@ -8,13 +8,13 @@ from dimod import (
 from copy import deepcopy
 import time
 from transformations.from_cplex import FromCPLEX
-
+from abstract.models.abstract_model import AbstractModel
 # from neal import SimulatedAnnealingSampler
 # from dwave.system import DWaveSampler, EmbeddingComposite
 import dimod
 
 
-class TR_cplex:
+class TR_cplex(AbstractModel):
 
     def __init__(self, data, tau_stop: int = 0):
         self.data = data
@@ -275,6 +275,9 @@ class TR_cplex:
             if (b, a) in tup2:
                 pairs.append((a, b))
         return tuple(pairs)
+
+    def build_model(self, *args, **kwargs):
+        self._build_model()
 
     def _build_model(self):
 

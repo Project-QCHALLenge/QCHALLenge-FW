@@ -7,9 +7,10 @@ from transformations.from_cplex import FromCPLEX
 from neal import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
 from dimod import SampleSet
+from abstract.models.abstract_model import AbstractModel
 
 
-class TR_cplex_simple:
+class TR_cplex_simple(AbstractModel):
 
     def __init__(self, railnetwork: RailNetwork, dmax: int = 2, tau_stop: int = 0):
 
@@ -315,6 +316,9 @@ class TR_cplex_simple:
                 ):
                     pairs.append((a, b))
         return tuple(pairs)
+
+    def build_model(self, *args, **kwargs):
+        self._build_model()
 
     def _build_model(self):
 

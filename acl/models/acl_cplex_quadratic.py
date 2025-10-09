@@ -7,6 +7,7 @@ from enum import Enum
 import time
 
 from acl.data.acl_data import ACLData
+from abstract.models.abstract_model import AbstractModel
 
 
 class Sense(Enum):
@@ -14,7 +15,7 @@ class Sense(Enum):
     Max = "max"
 
 
-class CplexQuadACL(CplexModel):
+class CplexQuadACL(CplexModel, AbstractModel):
     """
     Class to create a Cplex model, with maximally quadratic temrs, for the Autocarrier Loading Problem
 

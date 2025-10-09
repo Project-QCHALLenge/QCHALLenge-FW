@@ -1,16 +1,16 @@
 import numpy as np
 from matplotlib import patches
 import matplotlib.pyplot as plt
-
+from abstract.plot.abstract_plot import AbstractPlot
 from utils.tl_plotting_generic import compare_models
 
-class TL2DPlot:
+class TL2DPlot(AbstractPlot):
 
     def __init__(self, evaluation):
         self.data = evaluation.data
         self.selected_boxes = evaluation.solution["solution"]
 
-    def plot(self):
+    def plot_solution(self):
 
         # Initialize the figure and 3D axis
         fig = plt.figure(figsize=(10, 8))

@@ -15,6 +15,7 @@ class TLData(TruckLoadingData):
     Dataclass for the 2 dimensional truckloading problem (tl2d)
     """
 
+
     def __init__(self, truck_parameters: TruckParameters, boxes: pd.DataFrame):
         super().__init__(boxes, truck_parameters)
         self.num_variables =(len(boxes) # number of box origins
@@ -72,6 +73,10 @@ class TLData(TruckLoadingData):
         return instance
 
     @classmethod
+    def from_random(cls,  num_boxes, seed: int = 1):
+        return cls.get_random_problem(num_boxes, seed)
+
+    @classmethod
     def get_random_problem(cls, num_boxes, seed: int = 1):
         """
         Generates a random problem dataset with the specified number of boxes and a given random seed.
@@ -105,8 +110,6 @@ class TLData(TruckLoadingData):
         )
 
         return tl2d_data
-    
-    
         
     def get_num_variables(self):
         return self.num_variables

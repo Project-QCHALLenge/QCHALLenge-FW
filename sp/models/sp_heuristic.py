@@ -1,5 +1,6 @@
 import time
 
+
 class SPHeuristic:
 
     def __init__(self, data):

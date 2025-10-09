@@ -2,7 +2,7 @@
 from docplex.mp.model import Model
 import sys
 import os
-
+from abstract.models.abstract_model import AbstractModel
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 
@@ -11,7 +11,7 @@ from tl.evaluation.tl_solution import Tl2D_Solution
 from tl.models.tl_generic import Tl2D_Generic
 
 
-class TLD2D_Cplex(Tl2D_Generic):
+class TLD2D_Cplex(Tl2D_Generic, AbstractModel):
     """
     This class implements the 2 dimensional Truckloading problem.
     """
@@ -207,6 +207,9 @@ class TLD2D_Cplex(Tl2D_Generic):
 
     def set_time_limit(self, time_limit_sec: int):
         self.model.time_limit = time_limit_sec
+
+    def solve(self, *args, **kwargs):
+        self.optimize()
 
     def optimize(self, **config):
         """

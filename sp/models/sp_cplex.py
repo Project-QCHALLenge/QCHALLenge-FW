@@ -1,9 +1,10 @@
 import time
-
+from abstract.models.abstract_model import AbstractModel
 from docplex.mp.model import Model
 from transformations import FromCPLEX
 
-class CPlexSP: 
+
+class CPlexSP(AbstractModel):
     def __init__(self, data) -> None:
         self.data=data
         self.model = Model(name="SP")

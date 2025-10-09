@@ -4,14 +4,14 @@ import pyscipopt as scip
 
 import sys
 import os
-
+from abstract.models.abstract_model import AbstractModel
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 from tl.evaluation.tl_solution import Tl2D_Solution
 from .tl_generic import Tl2D_Generic
 
 
-class TLD2D_Scip(Tl2D_Generic):
+class TLD2D_Scip(Tl2D_Generic, AbstractModel):
     model_name = "Scip"
 
     def __init__(self, data):
@@ -187,6 +187,9 @@ class TLD2D_Scip(Tl2D_Generic):
 
     def set_time_limit(self, time_limit_sec):
         self.model.setParam("limits/time", time_limit_sec)
+
+    def solve(self, **config):
+        self.optimize(**config)
 
     def optimize(self, **config):
         if "TimeLimit" in config:

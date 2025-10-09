@@ -5,9 +5,10 @@ from functools import cached_property
 import time
 
 from pas.data.pas_data import PASData
+from abstract.models.abstract_model import AbstractModel
 
 
-class GurobiPAS:
+class GurobiPAS(AbstractModel):
 
     def __init__(self, data: PASData):
         self.data = data

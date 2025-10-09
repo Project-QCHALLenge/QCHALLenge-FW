@@ -1,9 +1,10 @@
 import pennylane as qml
 from pennylane import numpy as np
 import time
+from abstract.models.abstract_model import AbstractModel
 
 
-class SPQAOAnsatz:
+class SPQAOAnsatz(AbstractModel):
     def __init__(self, data, layers = 2, seed = 1, **params):
         self.data = data
         self.layers = layers
@@ -32,6 +33,31 @@ class SPQAOAnsatz:
         self.parameters = np.random.uniform(
             0, 2 * np.pi, (self.layers, 2)
         )
+
+    def build_model(self):
+        self.lidar_dict = self._create_lidar_dict()
+        self.streetpoint_dict = self._create_streetpoint_dict()
+        self.n_lidars = len(self.lidar_dict.keys())
+        self.max_strpnts_of_lidars = max([len(streatpnts) for streatpnts in self.lidar_dict.values()])
+        self.n_streetpoints = len(self.streetpoint_dict.keys())
+
+        self.cost_hamiltonian = self._cost_hamiltonian()
+
+        self.qubit_to_lidar_map = self._create_qubit_to_lidar_map()
+        self.strpnt_qubit_map = self._create_qubit_to_strpnt_map()
+
+        self.n_qubits = self.n_lidars + self.max_strpnts_of_lidars
+        self.qaoa_device = qml.device(
+            "default.qubit", wires=self.n_qubits
+        )
+        # in the case each lidar should have its own parameter
+        """self.parameters = np.random.uniform(
+            0, 2 * np.pi, (self.layers, 2, self.n_lidars)
+        )"""
+        self.parameters = np.random.uniform(
+            0, 2 * np.pi, (self.layers, 2)
+        )
+
 
     def _create_qubit_to_strpnt_map(self):
         """

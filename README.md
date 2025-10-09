@@ -88,10 +88,12 @@ to invoke the framework and learn about the pre-installed use cases.
 
 1. Adding New Use Cases
 
-When you want to add a new use case, we recommend starting with one of the existing examples as a template.  
-You'll typically need these functions:
+When you want to add a new use case, we recommend starting with one of the existing examples as a template.
+Additionally, it is recommended to use the abstract implementation in the folder abstract.
+In particular, this abstract implementation enforces usage of the following methods:
 
-- `data.gen_problem()`: to create a new problem instance.
+- `data.create_problem()`: to create a new problem instance.
+- `model.build_model()`: to build the model.
 - `model.solve()`: to solve your problem.
 - `evaluation.get_objective()`: to get the objective value.
 - `evaluation.check_solution()`: to check if constraints are violated.

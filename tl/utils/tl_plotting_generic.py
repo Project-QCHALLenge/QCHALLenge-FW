@@ -46,7 +46,7 @@ def compare_models(result_file_path: str, colors, offset):
             label=solver,
             color=colors[solver],
         )
-        axs[0].plot(
+        axs[0].plot_solution(
             solver_data["instance_size"] + offset[solver],
             solver_data["mean_runtime"],
             color=colors[solver],
@@ -72,7 +72,7 @@ def compare_models(result_file_path: str, colors, offset):
             label=solver,
             color=colors[solver],
         )
-        axs[1].plot(
+        axs[1].plot_solution(
             solver_data["instance_size"] + offset[solver],
             solver_data["mean_objective_value"],
             color=colors[solver],

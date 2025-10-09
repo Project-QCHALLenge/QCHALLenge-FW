@@ -2,9 +2,10 @@ import numpy as np
 from lb.data.lb_data import LBData
 import pandas as pd
 import bisect
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
 
-class LBEvaluation:
+class LBEvaluation(AbstractEvaluation):
     def __init__(self, solution, data : LBData):
         self.data = data
         self.solution = solution

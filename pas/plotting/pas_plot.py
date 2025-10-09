@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
+from abstract.plot.abstract_plot import AbstractPlot
 from io import BytesIO
 from datetime import date, timedelta
 
@@ -24,12 +24,13 @@ TAB10_COLORS = {
 }
 
 
-class PASPlot:
+class PASPlot(AbstractPlot):
     
     def __init__(self, evaluation):
         self.data = evaluation.data
         self.solution = evaluation.solution
-    def plot(
+
+    def plot_solution(
             self,
             title: str = "plot",
             show_data: bool = False,
@@ -111,12 +112,6 @@ class PASPlot:
             orientation="h",
             insidetextanchor="middle",
         )
-        buffer = BytesIO()
-        fig.write_image(buffer, format='png')
-        buffer.seek(0)
-        plt.figure(figsize=(12,8))
-        img = mpimg.imread(buffer, format='png')
-        plt.imshow(img)
-        plt.axis('off')
-        return plt
+
+        return fig
 

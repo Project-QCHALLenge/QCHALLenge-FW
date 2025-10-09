@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 import warnings
 from pathlib import Path
-
+from abstract.models.abstract_model import AbstractModel
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
-class MPLGurobiWaitOverlap:
+class MPLGurobiWaitOverlap(AbstractModel):
     def __init__(self, data):
         # processing / production time for different job types on different machines
         data = data.__dict__

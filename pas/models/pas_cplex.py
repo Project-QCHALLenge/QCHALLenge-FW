@@ -1,5 +1,5 @@
 import time
-
+from abstract.models.abstract_model import AbstractModel
 from enum import Enum
 from itertools import combinations
 from dimod import ConstrainedQuadraticModel, Binary, Integer
@@ -15,7 +15,7 @@ class Sense(Enum):
     Max = "max"
 
 
-class CplexPAS:
+class CplexPAS(AbstractModel):
     """
     Class to create a Cplex model for the product assignment problem
     """
@@ -118,6 +118,9 @@ class CplexPAS:
         obj += obj_expr.get_constant()
         cqm.set_objective(obj)
         return cqm
+
+    def build_model(self, *args, **kwargs):
+        self.__build_model()
 
     def __build_model(self):
         """

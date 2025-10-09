@@ -5,9 +5,10 @@ import gurobipy as gp
 import numpy as np
 import pandas as pd
 from itertools import product
+from abstract.models.abstract_model import AbstractModel
 
 
-class MPLGurobiNoWaitOverlapReduced:
+class MPLGurobiNoWaitOverlapReduced(AbstractModel):
     def __init__(self, data, overlap = True):
 
         self.OVERLAP = overlap

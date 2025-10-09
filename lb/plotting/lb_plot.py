@@ -3,9 +3,10 @@ import numpy as np
 import plotly.express as px
 from lb.data.lb_data import LBData
 from lb.evaluation.evaluation import LBEvaluation
+from abstract.plot.abstract_plot import AbstractPlot
 
 
-class LBPlot:
+class LBPlot(AbstractPlot):
     def __init__(self, data : LBData, evaluation : LBEvaluation):
         self.data = data
         self.evaluation = evaluation

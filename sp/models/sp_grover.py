@@ -12,8 +12,11 @@ from qiskit_aer.primitives import EstimatorV2 as Estimator
 from qiskit.quantum_info import Statevector, SparsePauliOp
 from itertools import combinations, product
 import time
+from abstract.models.abstract_model import AbstractModel
 
-class GroverSP: 
+
+
+class GroverSP(AbstractModel):
     def __init__(self, data: SPData) -> None:
         self.data=data
         self.usedLidars=[]
@@ -64,12 +67,9 @@ class GroverSP:
         else:   
             print('Simulator not known!') 
             return -1
-        
-        
-        
-        
 
-
+    def build_model(self, num_grover_iterations, print_circuit=False):
+        self.__setup_circuit(num_grover_iterations, print_circuit)
 
     def __setup_circuit(self, num_grover_iterations, print_circuit=False):
         lidar_count=len(self.data.listLidar)

@@ -1,6 +1,6 @@
 import gurobipy as gp
 from gurobipy import GRB, Var
-
+from abstract.models.abstract_model import AbstractModel
 from functools import cached_property
 import time
 
@@ -13,7 +13,7 @@ from dimod import (
 from transformations.from_cplex import FromCPLEX
 
 
-class GurobiTR(TR_cplex):
+class GurobiTR(TR_cplex, AbstractModel):
 
     def __init__(self, data: TRData):
         super().__init__(data)

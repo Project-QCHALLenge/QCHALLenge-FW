@@ -7,13 +7,14 @@ from docplex.mp.model import Model as CplexModel
 from acl.data.acl_data import ACLData
 
 from transformations.from_cplex import FromCPLEX
+from abstract.models.abstract_model import AbstractModel
 
 class Sense(Enum):
     Min = "min"
     Max = "max"
 
 
-class CplexLinACL(CplexModel):
+class CplexLinACL(CplexModel, AbstractModel):
     """
     Class to create a Cplex model, with maximally linear terms, for the Autocarrier Loading Problem
     """

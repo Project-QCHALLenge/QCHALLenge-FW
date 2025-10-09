@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from abstract.models.abstract_model import AbstractModel
 import time
 import dimod
 
@@ -15,7 +15,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-class MPLCQMNoWaitOverlap:
+class MPLCQMNoWaitOverlap(AbstractModel):
     def __init__(self, data, overlap = True):
 
         self.overlap = overlap

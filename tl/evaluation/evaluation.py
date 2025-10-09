@@ -1,6 +1,8 @@
 from tl.models.tl_cplex import TLD2D_Cplex
+from abstract.evaluation.abstract_evaluation import AbstractEvaluation
 
-class TLEvaluation:
+
+class TLEvaluation(AbstractEvaluation):
     def __init__(self, data, solution):
         self.data = data
         self.solution_object = solution

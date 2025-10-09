@@ -7,9 +7,10 @@ from acl.models.acl_cplex_linear import CplexLinACL
 from acl.data.acl_data import ACLData
 
 from transformations.from_cplex import FromCPLEX
+from abstract.models.abstract_model import AbstractModel
 
 
-class GurobiACL(CplexModel):
+class GurobiACL(CplexModel, AbstractModel):
     """
     Class to transform a Cplex model to a Gurobi model
     """

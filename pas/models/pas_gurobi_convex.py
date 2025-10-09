@@ -2,12 +2,13 @@ import time
 
 import gurobipy as gp
 import numpy as np
-
+from abstract.models.abstract_model import AbstractModel
 from itertools import product
 
 from pas.data.pas_data import PASData
 
-class GurobiConvexPAS:
+
+class GurobiConvexPAS(AbstractModel):
     '''
     Production assignment scheduling as a routing problem 
     '''
