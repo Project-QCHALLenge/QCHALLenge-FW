@@ -56,7 +56,7 @@ class QuboPAS(AbstractModel):
         # Set the penalty values for the constraints:
         self.lambda_4: float = self._calculate_lambda_4()
         # offset since c_4 rewards 111111 solution
-        self.lambda_3: float = self._calculate_lambda_3() #+ self.lambda_4
+        self.lambda_3: float = self._calculate_lambda_3() + self.lambda_4
         self.lambda_5: float = self._calculate_lambda_5() #+ self.lambda_4
         # The model in this case is a QUBO matrix
         self.model = self.build_model()
@@ -87,7 +87,7 @@ class QuboPAS(AbstractModel):
             lambda_normalization = (max(self.processing_times) * sum(self.processing_times)
                                     - max(self.processing_times)**2) + 1
         else:
-            lambda_normalization = 2*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times) + 1
+            lambda_normalization = 4*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times) + 1
 
         return self.job_values.max() + 1 +   self.alpha * lambda_setup_times + self.beta * lambda_normalization
 
@@ -100,7 +100,7 @@ class QuboPAS(AbstractModel):
         Similar to lambda_3, each x_m_t_j appears twice in setup times 
         """
 
-        return  2 * self.alpha * np.amax(self.setup_times) + 1 * self.beta * (2 * sum(self.processing_times) + 2)
+        return  2 * self.alpha * np.amax(self.setup_times) + 0* self.beta * (2 * sum(self.processing_times) + 2)
 
     def _calculate_lambda_5(self) -> float:
         """
@@ -120,7 +120,7 @@ class QuboPAS(AbstractModel):
             lambda_normalization = (max(self.processing_times) * sum(self.processing_times)
                                     - max(self.processing_times)**2) + 1
         else:
-            lambda_normalization = 2*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times) + 1
+            lambda_normalization = 1 + 4*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times)
 
         return self.job_values.max()+ 1 + self.alpha * 2 * np.amax(self.setup_times) + self.beta * lambda_normalization
 
@@ -244,7 +244,7 @@ class QuboPAS(AbstractModel):
         return constraint_3
 
 
-    def c4_no_timesteps_skipped(self) -> npt.NDArray:
+    def c4_no_timesteps_skipped_new(self) -> npt.NDArray:
         constraint_4 = np.zeros((self._q, self._q))
         for m in range(self.m):
             # iterator should be only till self._n_machines[0] - 1
@@ -259,7 +259,7 @@ class QuboPAS(AbstractModel):
                     constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job2, m, t - 1)] -= self.lambda_4
         return constraint_4
 
-    def c4_no_timesteps_skipped_old(self) -> npt.NDArray:
+    def c4_no_timesteps_skipped(self) -> npt.NDArray:
         constraint_4 = np.zeros((self._q, self._q))
         for m in range(self.m):
             # iterator should be only till self._n_machines[0] - 1
