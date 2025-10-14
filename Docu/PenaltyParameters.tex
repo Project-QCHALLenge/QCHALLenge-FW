@@ -1,0 +1,573 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{algpseudocode}
+
+\begin{document}
+\noindent
+In the following, the penalty parameter used for the Load Balancing and PAS QUBO models will be derived.
+If you spot any mistake or can improve those parameters, feel free to modify the code.
+
+\section{Load Balancing}
+A Load Balancing instance is given as $LB(V, W, T, C)$, where $V$ is the set of all units that must be assigned to some  truck in $T$. 
+Each unit has weight $w_i$ for all $i \in V$.
+$W$ is the set of all weights.
+Each truck has a capacity of $C$.
+The following QUBO model can be used to solve Load Balancing.
+Let $t$ denote the trucks and $i$ denote the units.
+Then $x_{it} = 1$, iff unit $i$ is assigned to truck $t$.
+\begin{gather}
+Q(x) = L(x) + \lambda(h_1(x) + h_2(x))\\
+L(x) = \sum_t L_t(x)^2 = \sum_t \left(\sum_{i} x_{ti}w_i\right)^2 \\
+h_1(x) = \sum_i \left(\sum_t x_{it} - 1\right)^2 \\
+h_2(x) = \sum_t \left(\sum_i x_{it} - c\right)^2.
+\end{gather}
+Here $c$ denotes the capacity each truck has and $w_i$ is the capacity the $i^{th}$ unit occupies.
+Let $x$ denote a feasible point, iff $h_1(x) = h_2(x) = 0$.
+We must choose $\lambda$ such that for any infeasible point $\bar{x}$ the following holds
+\begin{gather}
+Q(x) -  Q(\bar{x}) < 0.
+\end{gather}
+\subsection{Bounds on the Penalty}
+\noindent
+\begin{lemma} \label{LMA-LB-MAX}
+Given an feasible point $x$ for an instance $LB(V, W, T, C)$ and an infeasible point $\bar{x}$, then any parameter $\lambda_{max}<\lambda$ is sufficiently large to enforce $Q(x) - Q(\bar{x}) < 0$ for all feasible points $x$ and infeasible points $\bar{x}$. 
+Let $w^1_{max} \leq w^2_{max} \leq ... \leq w^C_{max}$ be the weights of the $C$ heaviest units, then $\lambda_{max}$ is given as
+\begin{gather*}
+\lambda_{max} = \frac{w^1_{max}}{2}\left(w^1_{max} + 2\sum_{i=1}^{C-1}w^i_{max}\right).
+\end{gather*}
+\end{lemma}
+\begin{proof}
+Let $x$ be any feasible point of an Load Balancing instance and $\bar{x}$ is an infeasible point obtained by flipping a single variable $x_{t', i'}$ in $x$.
+First we show that $h_1(\bar{x}) = h_2(\bar{x}) = 1$.
+Since this change only affects truck $t'$ and unit $i'$, the following holds
+\begin{gather*}
+h_1(x) - h_1(\bar{x}) = - h_1(\bar{x}) = -\left( \sum_t x_{i't}  \pm x_{i't'} -1 \right)^2 = -1.
+\end{gather*}
+The same claim can be made regarding $h_2$.
+\begin{gather*}
+h_2(x) - h_2(\bar{x}) = - h_2(\bar{x}) = -\left( \sum_i x_{it'}  \pm x_{i't'} -c  \right)^2 = -1.
+\end{gather*}
+Now, we must find the largest change in $L_{t'}(x)$ flipping $x_{i'j'}$ causes.
+Since $Q(x)$ is minimized, we only need to consider the case where $x_{i'j'}$ is flipped from 1 to 0.
+Notice the following \footnote{\url{https://planetmath.org/squareofsum}},
+\begin{gather*}
+\left(\sum_{i=1} x_i \right)^2 = (x_1)x_1 + (2x_1 + x_2)x_2 + ...
+\end{gather*}
+Using this and assuming there are $C$ units in total and $i$ corresponds to the $C^{th}$ unit, then wlog.
+\begin{align*}
+L(x) - L(\bar{x}) &=  \left( \sum_{i=1}^{C} x_{it'} w_i \right)^2 -  \left( \sum_{i=1}^{C-1} x_{it'} w_i \right)^2 \\
+& = \left(x_{i't'} w_{i'} + \sum_{i=1}^{C-1} 2x_{it'} w_i \right)x_{i'}w_{i'} \\ &\leq w^1_{max}\left(w^1_{max} + 2\sum_{i=1}^{C-1}w^i_{max}\right)  := \Delta L.
+\end{align*}
+Thus choosing $\lambda = 0.5(\Delta L + 1)$ always ensures that any feasible point yields a better objective value than any infeasible point
+\begin{gather}
+Q(x) -  Q(\bar{x}) = L(x) - (L(\bar{x}) + 2\lambda) = \Delta L - 2\lambda < 0 \\
+\implies \frac{\Delta L}{2} < \lambda.
+\end{gather}
+\end{proof}
+
+\begin{lemma}
+Given an feasible point $x$ for an instance $LB(V, W, T, C)$ and an infeasible point $\bar{x}$, then there can be no $\lambda < \lambda_{min}$ s.t. $Q(x) - Q(\bar{x}) < 0$, with
+\begin{gather}
+\lambda_{min} := w_{max}\bar{w} - \frac{1}{2} w_{max}^2 \\
+\bar{w} = \frac{1}{|T|} \sum_{i} w_i.
+\end{gather}
+\end{lemma}
+\begin{proof}
+In order to establish a lower bound, observe that for an  optimal solution $x_{opt}$, the load on truck $L_t(x_{opt})$  is bounded from below by the average load per truck for all trucks
+\begin{gather*}
+\bar{w} = \frac{1}{|T|} \sum_{i} w_i \leq L_t(x_{opt}) \quad \forall t \in T.
+\end{gather*}
+Thus assuming $L_t(x_{opt}) = \bar{w}$, the following holds
+\begin{gather*}
+Q(x) - Q(\bar{x}) \leq \bar{w}^2 - (\bar{w} - w_{max})^2 - 2\lambda < 0 \\
+\implies \lambda_{min} := w_{max}\bar{w} - \frac{1}{2} w_{max}^2 < \lambda.
+\end{gather*}
+
+\end{proof}
+
+
+\noindent
+This means that any choice of $\lambda_{min} \leq \lambda \leq \lambda_{max}$ is a reasonable choice for $\lambda$.
+However, there is still one problem, $\lambda_{min}$ was derived using a lower bound on the optimal objective value.
+There is no guarantee that a solution with according objective value exists.
+So to find an interval that yields penalty parameters that are sufficient to enforce constraints at optimal solutions, we must derive some upper bound on the optimal objective value.
+A simple approach is to utilize approximation algorithms such as greedy algorithms to construct a solution.
+This greedy solution can be used as an upper bound on the optimal objective value.
+ 
+\subsection{Greedy Penalty}
+In order to derive a penalty for greedy solutions, we must use the bounds on the makespan established in the proof of Graham´s Theorem \footnote{\url{https://otfried.org/courses/cs500/slides-approx.pdf}}.
+However, those bounds are not directly applicable.
+The definition of a Load Balancing problem used in the derivation does not include the capacity constraint.
+However, the provided Modified Greedy algorithm is still useful here.
+We must only add the capacity constraint.
+
+\begin{lemma} \label{LB-GRDY}
+Let $LB(V, W, T, C)$ be an instance of the Load Balancing problem. 
+Let $L_{max}^{k}$ be the load on the machine with the largest load at step $k$, $w_k$ the weight of the item assigned at step $k$, $L^k_{min}$ is the load on the machine with the smallest load at step $k$, $L^k_{\tau} := L^k_{min} + w_k$.
+Then
+\begin{gather}
+L^k_{\tau} = L_{max}^{k+1}.
+\end{gather}
+\end{lemma}
+\begin{proof}
+First we will define the used quantities rigorously and then proof the claim by induction.
+The following quantities will be used
+\begin{align*}
+w_m &\leq w_n \quad \forall m < n < |W| \\
+L_{min}^k &:= \min_{t \in T} L_t^{k-1} \\
+L_{max}^k &:= \max_{t \in T} L_t^{k-1}  \\
+x_{ij} &= \begin{cases}
+1, \quad \text{iff unit } i \text{ is assigned to truck } t \\
+0, \quad \text{else} 
+\end{cases}\\
+L_t^k &:= \sum_{i = 1}^{k} x_{ij} w_i \\
+L_{\tau}^k & := L_{min}^k + w_k.
+\end{align*}
+Next, we do a proof by induction.
+\paragraph{Base Case: } \mbox{} \\
+Let $k = 0$, then $L_{\tau}^0 = w_0$ and $L_{max}^{k+1} = w_0$.
+\paragraph{Induction Hypothesis: } \mbox{} \\
+The claim holds until step $j$ 
+\begin{gather*}
+L_{max}^{j+1} = L_{\tau}^{j}
+\end{gather*}
+\paragraph{Induction Step: } \mbox{} \\
+Let $k = j+1$, then by construction
+\begin{align*}
+L_{min}^{j+1} &\geq L_{min}^{j} \\
+w_{j+1} &\geq w_j.
+\end{align*}
+Then, using the induction hypothesis, we can make the following bound
+\begin{gather*}
+L_{\tau}^{j+1} = L_{\min}^{j+1} + w_{j+1} \geq L_{\min}^{j} + w_{j} = L_{\tau}^{j} \overset{\text{IH}}{=} L_{max}^{j+1}.
+\end{gather*}
+Now since truck $\tau$ was the only truck for which its load increased in the last step we find
+\begin{gather*}
+L_{\tau}^{j+1} \geq L_{max}^{j+1} \geq L_{t}^{t+1} \quad \forall t \in T.
+\end{gather*}
+By definition, $L_{max}^{j+2}$ is the largest load at the end of step $j+1$.
+The above inequality implies that the largest load at time step $j+1$ is $L_{\tau}^{j+1}$, hence $L_{max}^{j+2} = L_{\tau}^{j+1}$.
+\end{proof}
+
+\begin{corollary} \label{LB-GRDY-CRL}
+Lemma \ref{LB-GRDY} directly implies the following for any step $k$
+\begin{gather}
+L_{max}^{k} - w_k \leq L_t^{k} \quad \forall t \in T.
+\end{gather}
+\end{corollary}
+\begin{proof}
+Using Lemma \ref{LB-GRDY} yields
+\begin{gather*}
+L_{max}^{k} - w_{k} = L_{\tau}^{k-1} - w_{k} = L_{min}^{k-1} + w_{k-1} - w_{k} \leq  L_{min}^{k-1} \leq L_{min}^{k}.
+\end{gather*}
+
+\end{proof}
+
+
+\begin{lemma}
+Given an feasible point $x$ for an instance $LB(V, W, T, C)$ and an infeasible point $\bar{x}$, then any parameter $\lambda_{G}<\lambda$ is sufficiently large to enforce $Q(x) - Q(\bar{x}) < 0$ for all infeasible points $\bar{x}$. 
+Let $\bar{w}$ be the average load per truck, then $\lambda_{G}$ is given as
+\begin{gather*}
+\lambda_{G} = 2 \bar{w} w_{max}.
+\end{gather*}
+\end{lemma}
+\begin{proof}
+The goal is to establish an upper bound for the objective value of an optimal solution.
+Using this bound, one can derive a smaller penalty parameter.
+This will not ensure constraint enforcement for any feasible point, only for feasible points that have an objective value smaller than that bound, also including optimal solutions.
+To this end, a greedy algorithm is invoked but no explicit solution is approximated using this algorithm.
+\\
+Let $x_G$ be a feasible point generated by a greedy algorithm and let $\tau \in T$ be the truck with the highest load.
+Furthermore, the last unit assigned to machine $i$ is associated with the index $j \in U$.
+Following \ref{LB-GRDY-CRL}
+\begin{gather*}
+L_{\tau}(x_G) - w_j \leq L_{t}(x_G) \quad \forall t \in T,
+\end{gather*}
+since the result holds for any step of the algorithm, it must also hold for the constructed solution.
+Then, the following holds
+\begin{gather*}
+|T| (L_{\tau}(x_G) - w_j) \leq \sum_{t \in T} L_{t}(x_G) = \sum_{i \in U} w_i \\
+\implies (L_{\tau}(x_G) - w_j) \leq \frac{1}{|T|} \sum_{i \in U} w_i.
+\end{gather*}
+Let $\bar{w}$ denote the average load per machine
+\begin{gather*}
+\bar{w} = \frac{1}{|T|} \sum_{i} w_i.
+\end{gather*}
+We arrive at the following inequalities
+\begin{gather*}
+L_{\tau}(x_G) - w_{max} \leq L_{t}(x_G) \leq L_{\tau}(x_G) \leq \bar{w} + w_{max} \quad \forall t \in T.
+\end{gather*}
+As before, we assume that any infeasible point $\bar{x}$ is the result from flipping a single variable in a feasible point $x_G$.
+Then, for some machine $k$ we require 
+\begin{gather*}
+L_k(x_G)^2 - (L_k(\bar{x})^2 + 2\lambda_G) < 0.
+\end{gather*}
+Applying the derived inequalities
+\begin{align*}
+L_k(x_G)^2 - (L_k(\bar{x})^2 + 2\lambda_G) &\leq L_{\tau}(x_G)^2 - (L_{\tau}(x_G) - 2w_{max})^2 - 2\lambda_G \\
+&= 4L_{\tau}(x_G)w_{max} - 4w_{max}^2 - 2 \lambda_G \\
+&\leq 4(\bar{w} + w_{max}) w_{max}  - 4w_{max}^2 -2 \lambda_G \\
+&= 4\bar{w}w_{max}  -2 \lambda_G.
+\end{align*}
+This implies the following choice for $\lambda_G$
+\begin{gather*}
+2\bar{w}w_{max} < \lambda_G.
+\end{gather*}
+\\
+Next, we assume that for the the optimal solution  $L_t(x)^2 \leq L_t(x_G)^2$ for all trucks $t$. 
+Then the result holds for all feasible points $x$
+\begin{align*}
+L^2_k(x) - L^2_k(\bar{x}) &\leq L^2_k(x) - \left( L_k(x) - w_{max} \right ) ^2 - 2\lambda \\
+&\leq L^2_k(x) - \left( L_k(x) - 2w_{max} \right ) ^2 - 2\lambda \\
+&= L^2_k(x) - \left( L^2_k(x) - 4 L_k(x) w_{max} + 4w_{max}^2 \right ) - 2\lambda_{G} \\
+&= L^2_k(x) - L^2_k(x) + 4 L_k(x) w_{max} - 4w_{max}^2  - 2\lambda \\
+&=  4 L_k(x) w_{max} - 4w_{max}^2  - 2\lambda \\
+&\leq  4 L_{\tau}(x_G) w_{max} - 4w_{max}^2  - 2\lambda  \\
+&\leq 4(\bar{w} + w_{max}) w_{max}  - 4w_{max}^2 -2 \lambda \\
+&= 4\bar{w}w_{max}  -2 \lambda \\
+&\implies \lambda_{G} = \bar{w} w_{max} < \lambda. 
+\end{align*}
+Thus we can conclude that any choice of lambda $\lambda_G < \lambda \leq \lambda_{max}$ is sufficient to enforce constraints at optimal solutions.
+\end{proof}
+
+
+\section{Production Assignment Scheduling}
+An instance of the Production Assignment Scheduling is given as the tuple $PAS(M, J, T, \varepsilon, v, p, s, \alpha, \beta, \gamma)$.
+Where $M$ is the set of machines, $J$ is the set of jobs to be scheduled, $T = \{1, ..., |J|\}$ is the set of available slots on each machine.
+The set $\varepsilon$ is the set of all eligible machines per job.
+$m \in \varepsilon_j \subseteq M$ iff job $j$ can be processed on machine $m$.
+$v, p, s$ are values, processing times and setup times respectively.
+For $j \in J$, $i \in \varepsilon_j$, $v_{i,j}$ is the value generated by processing job $j$ on machine $i$.
+Finally $\alpha, \beta, \gamma$ are the weights of the objective functions.
+To find an optimal schedule, the following QUBO model is given.
+The decision variables are given as 
+\begin{gather}
+x_{m, t, j} = \begin{cases} 1, \quad \text{if job $j$ is the $t$-th jon on machine $m$} \\
+0, \quad \text{otherwise}.
+\end{cases}
+\end{gather}
+Then three objectives are given.
+The first one minimizes the total setup time on all the machines
+\begin{gather}
+\min \alpha \cdot \sum_{m \in M} \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j}. \label{PAS-obj-1}
+\end{gather}
+The next one balances the job assignments across all machines
+\begin{gather}
+\min \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \sum_{j \in J} p^m_j \cdot x_{m,t,j} \right)^2. \label{PAS-obj-2}
+\end{gather}
+The last one maximizes the overall value generated by processing the jobs
+\begin{gather}
+\min -\gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j}. \label{PAS-obj-3}
+\end{gather}
+Next, the constraints are discussed.
+First it is required that all jobs are scheduled exactly once
+\begin{gather}
+\sum_{m \in M} \sum_{t \in T} x_{m,t,j} = 1 \quad \forall j \in J. \label{PAS-1}
+\end{gather}
+The second constraints ensures that at most one job can be scheduled per time slot per machine
+\begin{gather}
+\sum_{j \in J} x_{m, t, j} \leq 1 \quad \forall m \in M, \, t\in T. \label{PAS-2}
+\end{gather}
+Next, a job $j$ can be scheduled at slot $t$ on machine $m$ if some other job $j'$ has been scheduled at slot $t-1$ on the same machine
+\begin{gather}
+\sum_{j \in J} x_{m,t,j} \leq  \sum_{j \in J} x_{m,t-1,j} \quad \forall t \in T', \, m \in M. \label{PAS-3}
+\end{gather}
+Here, $T' = {2, ..., |J|}$.
+The last constraint enforces that a job $j$ can only be scheduled on machines in $\varepsilon_j$
+\begin{gather}
+x_{m,t,j} = 0 \quad \forall j \in J, \, m \not \in \varepsilon_j, \, \forall t \in T. \label{PAS-4}
+\end{gather}
+
+\subsection{Penalties}
+In order formulate the above model without constraints, a penalty for each constraint must be found.
+First, some penalty $\lambda_3$ for constraints (\ref{PAS-2}) will be derived.
+In the following, it will be always assumed that each constraint function counts the number of constraint violations.
+Additionally, infeasible points will be constructed such that only one infeasibility is present.
+\begin{corollary}
+Suppose $c: \mathbb{B}^n \rightarrow \mathbb{N}_0$ is a quadratic constraint function equivalent to one of the constraints (\ref{PAS-1} - \ref{PAS-3}).
+Suppose $\bar{x}$ is an infeasible point that violates $c$ exactly once, then WLOG we can assume $c(\bar{x}) = 1$.
+\end{corollary}
+\begin{proof}
+Suppose $c(\bar{x}) = 1$ and  $\lambda$ is sufficiently large such that for any feasible point $x$, then the following inequality holds
+\begin{gather*}
+Q(x) - Q(\bar{x}) - a \cdot \lambda < Q(x) - Q(\bar{x}) - \lambda  < 0.
+\end{gather*}
+Here $a>1$ is some coefficient.
+Hence, if some $\lambda$ is large enough to enforce a constraint $c$ s.t. $c(\bar{x}) = 1$, it will also enforce the same constraint if $c(\bar{x}) > 1$. 
+\end{proof}
+\begin{lemma}\label{LMA-PAS-ST}
+Let $c_s(x)$ denote the quadratic constraint equivalent to (\ref{PAS-2}) such that $c_s : \mathbb{B}^n \rightarrow \mathbb{N}_0$, where $n$ is the number of decision variables.
+If $\beta$ = $\gamma$ = 0, then 
+\begin{gather}
+2 \cdot \alpha\cdot s_{max} + 1 \leq \lambda_3^{\alpha} \\
+s_{max} = \max_{i, j \in J \times J} s_{i, j}.
+\end{gather}
+\end{lemma}
+\begin{proof}
+Suppose $x$ is a feasible solution to the instance $PAS(M, J, T, \varepsilon, v, p, s, \alpha, 0, 0)$. 
+Then, let $\bar{x}$ be an infeasible point constructed as follows
+\begin{gather*}
+x_{m_0, t_0 + 1,j_0} \in x \\
+\bar{x} = x \setminus \{x_{m_0, t_0 + 1,j_0}\} \cup \{x_{m_0, t_0 ,j_0}\}.
+\end{gather*}
+Wlog. we can assume that $|M| = 1$, let $L_s(x)$ denote objective (\ref{PAS-obj-1}).
+Then, we want $L_s(x) - (L_s(\bar{x}) + \lambda_3 c_s(\bar{x})) < 0$.
+We can assume $c_s(\bar{x}) = 1$, which will be shown in a later step.
+\begin{align*}
+Q(x) - Q(\bar{x}) &\leq \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\ 
+&- \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\
+&+ \alpha  \cdot x_{m, t_0+1, j_0}\sum_{i \in J}  x_{m, t_0, i} s_{i, j_0}  \\
+&+  \alpha \cdot x_{m, t_0+1, j_0}\sum_{i \in J}  x_{m, t_0+2, i} s_{i, j_0}
+\leq 2 \cdot \alpha \cdot s_{max}.
+\end{align*}
+The correction term accounts for the flipped variables in $\bar{x}$. 
+There might be additional correction therm but in the worst case, those are zero if $t_0 = 0$, hence the first inequality.
+Thus, 
+\begin{gather*}
+Q(x) - (L_s(\bar{x}) + \lambda_3^{\alpha} c_s(\bar{x})) \leq 2 \cdot \alpha \cdot s_{max} - \lambda_3^{\alpha} < 0 \\
+\implies 2 \cdot \alpha \cdot s_{max} + 1 \leq \lambda_3^{\alpha}.
+\end{gather*}
+\end{proof}
+
+\begin{lemma} \label{LMA-PAS-LB}
+If for each job the processing times across all machines are equal, then a feasible point of  $PAS(M, J, T, \varepsilon, v, p, s, 0, \beta, 0)$ is also a feasible point of Load Balancing $LB(J^+, p, M, T)$ with the same objective value. $J^+$ is the union of $J$ and $(|M|-1)|J|$ dummy jobs with zero processing times that can be processed on all machines.
+\end{lemma}
+\begin{proof}
+Let $D$ denote the set of dummy jobs, then $J^+ := J \cup D$, while $|T| = |J|$.
+Then a feasible solution $x$ of the instance $PAS(M, J, T, \varepsilon, v, p, s, 0, \beta, 0)$ as described above is also optimal for $PAS(M, J^+, T, \varepsilon, v, p, s, 0, \beta, 0)$, for any valid assignment of the dummy jobs.
+One can see this as follows
+\begin{align*}
+L_b(x) &= \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \sum_{j \in J^+} p^m_j \cdot x_{m,t,j} \right)^2 \\
+&= \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \left(\sum_{j \in J} p^m_j \cdot x_{m,t,j} + \sum_{j \in D} p^m_j \cdot x_{m,t,j} \right)\right)^2 \\
+&= \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \sum_{j \in J} p^m_j \cdot x_{m,t,j} \right)^2.
+\end{align*}
+Now, lets define a auxiliary variable $z_{m,j}$
+\begin{gather*}
+z_{m,j} = \sum_{t \in T} x_{m,t,j}.
+\end{gather*}
+By constraint (\ref{PAS-1}), $z_{m,j}$ is one iff job $j$ is scheduled on machine $m$, otherwise it is zero.
+Now, we apply this to the objective (\ref{PAS-2})
+\begin{align*}
+ & \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \sum_{j \in J^+} p^m_j \cdot x_{m,t,j} \right)^2 \\
+ & = \beta \cdot \sum_{m \in M} \left( \sum_{j \in J^+} p^m_j \cdot z_{m,j} \right)^2.
+\end{align*}
+Wlog, we can ignore $\beta$, since objective functions are scaling invariant.
+Next we treat constraint(\ref{PAS-1})
+\begin{align*}
+&\sum_{m \in M} \sum_{t \in T} x_{m,t,j} \\
+&= \sum_{m \in M} z_{m,j}= 1 \quad \forall j \in J^+. 
+\end{align*}
+Using the dummy jobs, we can strengthen constraint (\ref{PAS-2}).
+Across all machine,a total of $|T||M| = |J||M|$ slots are available.
+We also have $|J|$ jobs and $|J|(|M|-1)$ dummy jobs, so in total we have $|M||J|$ jobs in $J^+$.
+By pigeon hole principle, all slots on all machines must be always occupied.
+Hence, one can assume equality in constraint  (\ref{PAS-2})
+\begin{gather*}
+\sum_{j \in J^+} x_{m, t, j} = 1 \quad \forall m \in M, \, t\in T. 
+\end{gather*} 
+Then we can sum up this constraint over $T$ and get 
+\begin{gather*}
+\sum_{j \in J^+}\sum_{t \in T} x_{m, t, j} = |T| \quad \forall m \in M \\
+\implies \sum_{j \in J^+}z_{m, j} = |T| \quad \forall m \in M.
+\end{gather*}
+Now, the constraint (\ref{PAS-3}) is always fulfilled
+\begin{align*}
+\sum_{j \in J^+} x_{m,t,j} &\leq  \sum_{j \in J^+} x_{m,t-1,j} \quad \forall t \in T', \, m \in M
+\implies \sum_{j \in J^+} x_{m,|J|,j}  &\leq  \sum_{j \in J^+} x_{m,1,j} \quad \forall m \in M.
+\end{align*}
+By the last constraint one can see
+\begin{gather*}
+1= \sum_{j \in J^+} x_{m,|J^+|,j}  \leq  \sum_{j \in J^+} x_{m,1,j} = 1 \quad \forall m \in M.
+\end{gather*}
+Therefore this constraint is always fulfilled.
+PAS now has one additional constraint  if there exists at least one job $j \in J$  such that $\varepsilon_j \neq M$.
+This implies that the transformed feasible set of PAS is a subset of the feasible set of LB, since a feasible point of the PAS instance must fulfil all the above constraints.
+The additional constraint cannot be a contradiction to any of the above constraints, otherwise the model would be infeasible.
+\\
+\end{proof}
+
+\begin{lemma} \label{LMA-PAS-MS}
+Let the conditions of Lemma \ref{LMA-PAS-LB} be satisfied and
+\begin{gather*}
+\lambda_{max} :=  \beta \cdot p_{max}\left(p_{max} + 2\sum_{i=1}^{C-1}p_i \right),
+\end{gather*}
+then any $\lambda_3^{\beta}$ such that $\lambda_{max} < \lambda_3^{\beta}$ is sufficiently large to enforce constraints (\ref{PAS-2}) and (\ref{PAS-1}).
+\end{lemma}
+\begin{proof}
+Using Lemma \ref{LMA-PAS-LB}, the PAS instance can be reduced to a LB instance, then by Lemma \ref{LMA-LB-MAX} the following choice of $\lambda_{max}$ will result in constraint enforcement
+\begin{gather*}
+\lambda_{max} :=  \frac{p_{max}}{2}\left(p_{max} + 2\sum_{i=1}^{C-1}p_i \right).
+\end{gather*}
+Additionally, one must drop the factor $\frac{1}{2}$. 
+This factor was introduced, since in Load Balancing, both constraints will be violated or no constraint will be violated.
+Here, leaving a job out will violate (\ref{PAS-1}) but not (\ref{PAS-2}).
+By construction the capacity $C$ equals $|J|$ and the $C$ largest processing times correspond to the non zero processing times.
+Also $p_{max}$ denotes the largest processing time and it is assumed that $p_{max} = p_{C}$.
+\end{proof}
+
+\begin{lemma} \label{LMA-PAS-VAL}
+Given an instance $PAS(M, J, T, \varepsilon, v, p, s, 0, 0, \gamma )$ and let  $v_{max}$ be the largest value in $v$, then any $ \gamma v_{max} < \lambda_3^{\gamma}$ is sufficiently large to enforce constraint (\ref{PAS-2}).
+\end{lemma}
+\begin{proof}
+As before, we assume that the quadratic constraint equivalent to (\ref{PAS-2}) counts the number of constraint violations.
+Then, for any feasible point $x$, we construct an infeasible point $\bar{x}$ by changing some $x_{m', t', j'}$ to 1.
+Then, we require 
+\begin{align*}
+Q(x) - Q(\bar{x}) &= -\gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j} \\
+& - \left( -\gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j} - \gamma v_{j', m'} +\lambda_3^{\gamma} \right)  \\
+&= \gamma v_{j', m'} - \lambda_3^{\gamma} < \gamma  v_{max} - \lambda_3^{\gamma} < 0 \\  
+&\implies  \gamma v_{max} < \lambda_3^{\gamma}.
+\end{align*}
+
+\end{proof}
+\begin{lemma}
+Given an instance  $PAS(M, J, T, \varepsilon, v, p, s, \alpha, \beta, \gamma )$, then any $ \lambda_3$ such that $\lambda_3^{\alpha} + \lambda_3^{\beta} + \lambda_3^{\gamma} < \lambda_3$ is sufficiently large to enforce constraint (\ref{PAS-2}).
+\end{lemma}
+\begin{proof}
+Combine Lemmas (\ref{LMA-PAS-ST}, \ref{LMA-PAS-MS}, \ref{LMA-PAS-VAL}).
+\end{proof}
+Next, the penalties for enforcing (\ref{PAS-3}) will be derived.
+
+\begin{lemma} \label{PAS-LMA-NG}
+For any instance $PAS(M, J, T, \varepsilon, v, p, s, 0, 0, \gamma)$, the objective is invariant under violations of constraint (\ref{PAS-3}). Hence, no penalty parameter is needed.
+\end{lemma}
+\begin{proof}
+Let $x$ be any feasible point of such instance, then the objective function at this point is given as
+\begin{align*}
+Q(x) &= -\gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j} \\
+&=  -\gamma \cdot \sum_{m \in M} \sum_{j \in J} v_{j,m}  \sum_{t \in T}   \cdot x_{m, t, j}.
+\end{align*}
+Constraint (\ref{PAS-3}) is violated if there is some job placed on some machine such that there is no other job placed right before this job, with the exception of the job scheduled on the first slot.
+Notice that for any $j \in J, m \in M$ the value $v_{j,m}$ will be added as long as there exists some $t' \in T$ such that $x_{m, t', j} = 1$.
+\end{proof}
+
+\begin{lemma}\label{PAS-LMA-NB}
+For any instance $PAS(M, J, T, \varepsilon, v, p, s, 0, \beta, 0)$, the objective is invariant under violations of constraint (\ref{PAS-3}). Hence, no penalty parameter is needed.
+\end{lemma}
+\begin{proof}
+Let $x$ be any feasible point of such instance, then the objective function at this point is given as
+\begin{align*}
+Q(x) &= \beta \cdot \sum_{m \in M} \left( \sum_{t \in T} \sum_{j \in J} p^m_j \cdot x_{m,t,j} \right)^2 \\
+&=  \beta \cdot \sum_{m \in M} \left(\sum_{j \in J} p^m_j  \sum_{t \in T}  x_{m,t,j} \right)^2.
+\end{align*}
+Constraint (\ref{PAS-3}) is violated if there is some job placed on some machine such that there is no other job placed right before this job, with the exception of the job scheduled on the first slot.
+Notice that for any $j \in J, m \in M$ the value $p^m_j$ will be added as long as there exists some $t' \in T$ such that $x_{m, t', j} = 1$.
+\end{proof}
+
+\begin{lemma}\label{PAS-LMA-A}
+For any instance $PAS(M, J, T, \varepsilon, v, p, s, \alpha, 0, 0)$, let $s_{max}$ be the largest setup time.
+Then, the quadratic constraint equivalent to (\ref{PAS-3} is enforced for any $\lambda_{max} < \lambda_4^{\alpha}$ with
+\begin{gather}
+\lambda_{max} = 2 \cdot \alpha \cdot s_{max}.
+\end{gather}
+\end{lemma}
+\begin{proof}
+Suppose $x$ is a feasible solution to the instance $PAS(M, J, T, \varepsilon, v, p, s, \alpha, 0, 0)$. 
+Then, let $j_0$ be any job scheduled on machine $m_0$ and let $j'$ be $j_0$ or any job scheduled after $j_0$ at time $t'$. 
+An infeasible solution $\bar{x}$ can be constructed as follows
+\begin{gather*}
+x_{m_0, t_0,j_0} \in x \\
+\bar{x} = x \setminus \{x_{m_0, t' ,j'}\} \cup \{x_{m_0, t'  + 1,j'}\} \quad \forall j'.
+\end{gather*}
+Wlog. we can assume that $|M| = 1$, let $L_s(x)$ denote objective (\ref{PAS-obj-1}).
+Then, we want $L_s(x) - (L_s(\bar{x}) + \lambda_3 c_s(\bar{x})) < 0$.
+We can assume $c_s(\bar{x}) = 1$, which will be shown in a later step.
+\begin{align*}
+Q(x) - Q(\bar{x}) &\leq \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\ 
+&- \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\
+&+ \alpha  \cdot x_{m, t_0, j_0}\sum_{i \in J}  x_{m, t_0-1, i} s_{i, j_0}  \\
+&+  \alpha \cdot x_{m, t_0, j_0}\sum_{j'}  x_{m, t_0+1, i} s_{i, j_0}
+\leq 2 \cdot \alpha \cdot s_{max}.
+\end{align*}
+The correction term accounts for the flipped variables in $\bar{x}$. 
+There might be additional correction therm but in the worst case, those are zero if $t_0-1 = 0$, hence the first inequality.
+Thus, 
+\begin{gather*}
+Q(x) - (L_s(\bar{x}) + \lambda_3^{\alpha} c_s(\bar{x})) \leq 2 \cdot \alpha \cdot s_{max} - \lambda_3^{\alpha} < 0 \\
+\implies 2 \cdot \alpha \cdot s_{max} + 1 \leq \lambda_3^{\alpha}.
+\end{gather*}
+\end{proof}
+
+\begin{lemma}
+Given any instance $PAS(M, J, T, \varepsilon, v, p, s, \alpha, \beta, \gamma)$ any $\lambda_4^{\alpha} <\lambda_4$ is sufficiently large to enforce constraint (\ref{PAS-3}).
+\end{lemma}
+\begin{proof}
+Combine lemma (\ref{PAS-LMA-NG}, \ref{PAS-LMA-NB}, \ref{PAS-LMA-A}).
+\end{proof}
+
+\begin{lemma} \label{PAS-LMA5-G}
+Given any instance  $PAS(M, J, T, \varepsilon, v, p, s, 0, 0, \gamma)$, any $\lambda_{min}<\lambda^{\gamma}_5$ is sufficiently large to enforce constraint (\ref{PAS-1}).
+$\lambda_{min}$ is defined as follows
+\begin{gather}
+\lambda_{min} := \gamma \cdot \max_{j \in J, m \in M} v_{j, m}
+\end{gather}
+\end{lemma}
+\begin{proof}
+Let $x$ be a feasible point of given instance, let $\bar{x}$ be an infeasible instance constructed by removing some $x_{j', m', t'}$ from $x$, then
+\begin{align*}
+Q(x) - Q(\bar{x}) &= -\gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j} \\
+&+ \gamma \cdot \sum_{m \in M}  \sum_{t \in T}  \sum_{j \in J} v_{j,m} \cdot x_{m, t, j} + \gamma v_{j', m'} - \lambda_{min}\\
+&=  \beta v_{j', m'} - \lambda_{min} \leq v_{max} - \lambda_{min}.
+\end{align*}
+As before, we require $Q(x) - Q(\bar{x}) < 0$, hence
+\begin{gather*}
+Q(x) - Q(\bar{x}) \leq \gamma v_{max} - \lambda_{min} < 0 \\
+\implies \gamma v_{max} < \lambda_{min}.
+\end{gather*}
+\end{proof}
+
+\begin{lemma} \label{PAS-LMA5-B}
+Let the conditions of Lemma \ref{LMA-PAS-LB} be satisfied and
+\begin{gather*}
+\lambda_{max} :=  \beta \cdot p_{max}\left(p_{max} + 2\sum_{i=1}^{C-1}p_i \right),
+\end{gather*}
+then any $\lambda_5^{\beta}$ such that $\lambda_{max} < \lambda_5^{\beta}$ is sufficiently large to enforce constraints (\ref{PAS-1}).
+\end{lemma}
+\begin{proof}
+See lemma (\ref{LMA-PAS-MS}).
+\end{proof}
+
+\begin{lemma}\label{PAS-LMA5-A}
+Let $c_s(x)$ denote the quadratic constraint equivalent to (\ref{PAS-2}) such that $c_s : \mathbb{B}^n \rightarrow \mathbb{N}_0$, where $n$ is the number of decision variables.
+If $\beta$ = $\gamma$ = 0, then 
+\begin{gather}
+2 \cdot \alpha\cdot s_{max} + 1 \leq \lambda_5^{\alpha} \\
+s_{max} = \max_{i, j \in M \times J} s_{i, j}.
+\end{gather}
+\end{lemma}
+\begin{proof}
+Suppose $x$ is a feasible solution to the instance $PAS(M, J, T, \varepsilon, v, p, s, \alpha, 0, 0)$. 
+Then, let $\bar{x}$ be an infeasible point constructed as follows
+\begin{gather*}
+x_{m_0, t_0,j_0} \in x \\
+\bar{x} = x \setminus \{x_{m_0, t_0,j_0}\}.
+\end{gather*}
+Wlog. we can assume that $|M| = 1$, let $L_s(x)$ denote objective (\ref{PAS-obj-1}).
+Then, we want $L_s(x) - (L_s(\bar{x}) + \lambda^{\alpha}_5 c_s(\bar{x}) < 0$.
+We can assume $c_s(\bar{x}) = 1$, which will be shown in a later step.
+\begin{align*}
+Q(x) - Q(\bar{x}) &\leq \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\ 
+&- \alpha \cdot  \sum_{t \in T'} \sum_{i \in J}\sum_{j \in J} s_{i,j} \cdot x_{m, t-1, i} \cdot x_{m, t, j} \\
+&+ \alpha  \cdot x_{m, t_0, j_0}\sum_{i \in J}  x_{m, t_0-1, i} s_{i, j_0}  \\
+&+  \alpha \cdot x_{m, t_0, j_0}\sum_{i \in J}  x_{m, t_0+1, i} s_{i, j_0}
+\leq 2 \cdot \alpha \cdot s_{max}.
+\end{align*}
+The correction term accounts for the flipped variables in $\bar{x}$. 
+There might be additional correction therm but in the worst case, those are zero if $t_0 = 0$, hence the first inequality.
+\end{proof}
+
+\begin{lemma}
+Given an instance  $PAS(M, J, T, \varepsilon, v, p, s, \alpha, \beta, \gamma )$, then any $ \lambda_5$ such that $\lambda_5^{\alpha} + \lambda_5^{\beta} + \lambda_5^{\gamma} < \lambda_5$ is sufficiently large to enforce constraint (\ref{PAS-2}).
+\end{lemma}
+\begin{proof}
+Combine Lemmas (\ref{PAS-LMA5-G}, \ref{PAS-LMA5-B}, \ref{PAS-LMA5-A}).
+\end{proof}
+
+\end{document}
