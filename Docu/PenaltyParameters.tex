@@ -110,10 +110,10 @@ We must only add the capacity constraint.
 
 \begin{lemma} \label{LB-GRDY}
 Let $LB(V, W, T, C)$ be an instance of the Load Balancing problem. 
-Let $L_{max}^{k}$ be the load on the machine with the largest load at step $k$, $w_k$ the weight of the item assigned at step $k$, $L^k_{min}$ is the load on the machine with the smallest load at step $k$, $L^k_{\tau} := L^k_{min} + w_k$.
+Let $L_{max}^{k}$ be the load on the machine with the largest load at step $k$, $w_k$ the weight of the item assigned at step $k$, $L^k_{min}$ is the load on the machine with the smallest load at step $k$, $L^k_{\sigma} := L^k_{min} + w_k$.
 Then
 \begin{gather}
-L^k_{\tau} = L_{max}^{k+1}.
+L^{k+1}_{\sigma} = L_{max}^{k+1}.
 \end{gather}
 \end{lemma}
 \begin{proof}
@@ -121,39 +121,39 @@ First we will define the used quantities rigorously and then proof the claim by 
 The following quantities will be used
 \begin{align*}
 w_m &\leq w_n \quad \forall m < n < |W| \\
-L_{min}^k &:= \min_{t \in T} L_t^{k-1} \\
-L_{max}^k &:= \max_{t \in T} L_t^{k-1}  \\
+L_{min}^k &:= \min_{t \in T} L_t^{k} \\
+L_{max}^k &:= \max_{t \in T} L_t^{k}  \\
 x_{ij} &= \begin{cases}
 1, \quad \text{iff unit } i \text{ is assigned to truck } t \\
 0, \quad \text{else} 
 \end{cases}\\
 L_t^k &:= \sum_{i = 1}^{k} x_{ij} w_i \\
-L_{\tau}^k & := L_{min}^k + w_k.
+L_{\sigma}^{k+1} & := L_{min}^k + w_k.
 \end{align*}
 Next, we do a proof by induction.
 \paragraph{Base Case: } \mbox{} \\
-Let $k = 0$, then $L_{\tau}^0 = w_0$ and $L_{max}^{k+1} = w_0$.
+Let $k = 0$, then $L_{\sigma}^1 = w_0$ and $L_{max}^{1} = w_0$.
 \paragraph{Induction Hypothesis: } \mbox{} \\
 The claim holds until step $j$ 
 \begin{gather*}
-L_{max}^{j+1} = L_{\tau}^{j}
+L_{max}^{j} = L_{\sigma}^{j}
 \end{gather*}
 \paragraph{Induction Step: } \mbox{} \\
 Let $k = j+1$, then by construction
 \begin{align*}
-L_{min}^{j+1} &\geq L_{min}^{j} \\
-w_{j+1} &\geq w_j.
+L_{min}^{j} &\geq L_{min}^{j-1} \\
+w_{j} &\geq w_{j-1}.
 \end{align*}
 Then, using the induction hypothesis, we can make the following bound
 \begin{gather*}
-L_{\tau}^{j+1} = L_{\min}^{j+1} + w_{j+1} \geq L_{\min}^{j} + w_{j} = L_{\tau}^{j} \overset{\text{IH}}{=} L_{max}^{j+1}.
+L_{\sigma}^{j+1} = L_{\min}^{j} + w_{j} \geq L_{\min}^{j-1} + w_{j-1} = L_{\sigma}^{j} \overset{\text{IH}}{=} L_{max}^{j}.
 \end{gather*}
 Now since truck $\tau$ was the only truck for which its load increased in the last step we find
 \begin{gather*}
-L_{\tau}^{j+1} \geq L_{max}^{j+1} \geq L_{t}^{t+1} \quad \forall t \in T.
+L_{\sigma}^{j+1} \geq L_{max}^{j} \geq L_{t}^{t+1} \quad \forall t \neq \sigma \in T.
 \end{gather*}
-By definition, $L_{max}^{j+2}$ is the largest load at the end of step $j+1$.
-The above inequality implies that the largest load at time step $j+1$ is $L_{\tau}^{j+1}$, hence $L_{max}^{j+2} = L_{\tau}^{j+1}$.
+By definition, $L_{max}^{j+1}$ is the largest load at the end of step $j+1$.
+The above inequality implies that the largest load at time step $j+1$ is $L_{\sigma}^{j+1}$, hence $L_{max}^{j+1} = L_{\sigma}^{j+1}$.
 \end{proof}
 
 \begin{corollary} \label{LB-GRDY-CRL}
@@ -165,7 +165,7 @@ L_{max}^{k} - w_k \leq L_t^{k} \quad \forall t \in T.
 \begin{proof}
 Using Lemma \ref{LB-GRDY} yields
 \begin{gather*}
-L_{max}^{k} - w_{k} = L_{\tau}^{k-1} - w_{k} = L_{min}^{k-1} + w_{k-1} - w_{k} \leq  L_{min}^{k-1} \leq L_{min}^{k}.
+L_{max}^{k} - w_{k} = L_{\sigma}^{k} - w_{k} = L_{min}^{k-1} + w_{k-1} - w_{k} \leq  L_{min}^{k-1} \leq L_{min}^{k}.
 \end{gather*}
 
 \end{proof}
