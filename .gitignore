@@ -178,3 +178,5 @@ cython_debug/
 merged_requirements.txt
 
 OddThings/
+
+*.ilp

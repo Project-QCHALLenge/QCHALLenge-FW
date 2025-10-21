@@ -16,7 +16,7 @@ import dimod
 
 class TR_cplex(AbstractModel):
 
-    def __init__(self, data, tau_stop: int = 0):
+    def __init__(self, data, tau_stop: int = 0, compute_m=True):
         self.data = data
         self.tau_int = tau_stop
         self.constraints = self.Constraints(self)
@@ -29,6 +29,7 @@ class TR_cplex(AbstractModel):
         self._model = Model(name="TrainScheduling")
         self.violations = dict()
         self._variables = []  # is this needed afterall?
+
 
         self.S = {
             j: train.route for j, train in self.trains.items()
@@ -128,9 +129,26 @@ class TR_cplex(AbstractModel):
                 self.z[(j, j_1, (s, s_next))] == 1 - self.z[(j_1, j, (s_next, s))],
                 ctname=f"order_{j}_{j_1}_{s}_{s_next}",
             )
-
+        self.compute_m = compute_m
+        if compute_m:
+            self.M = self._calculate_M()
+        else:
+            self.M = 1000
         self._build_model()
         self.num_variables = len(self.t) + len(self.y) + len(self.z)
+
+
+    def _calculate_M(self):
+        upsilon_max = max(self.upsilon.values())
+        min_train_speed = min([train.speed for train in self.railnetwork._trains.values()])
+        max_distance = max([data["distance"] for _, _, data in self.railnetwork.network.edges(data=True)])
+        min_speed_limit = min([data["max_speed"] for _, _, data in self.railnetwork.network.edges(data=True)])
+
+        max_passing_time = max_distance / min(min_speed_limit, min_train_speed)
+
+
+        return upsilon_max + self._d_max + max_passing_time
+
 
     def bqm(self):
         self.T = {
@@ -165,7 +183,7 @@ class TR_cplex(AbstractModel):
     def set_dmax(self, dmax):
         self.data.railnet.dmax = self._d_max + 1
         self.__init__(
-            self.data, self.tau_int
+            self.data, self.tau_int, compute_m=self.compute_m
         )  # or rebuild self.t which is probably the correct way to do it
 
     # def set_bqm(self):
@@ -330,7 +348,7 @@ class TR_cplex(AbstractModel):
         t, _, _ = self._make_dicts(solution)
         for k, v in self.upsilon.items():
             obj += t[k] - v
-        return v
+        return obj
 
     #### constraints and violation checking
 
@@ -419,7 +437,7 @@ class TR_cplex(AbstractModel):
             for s, s_next in tups:
                 self._model.add_constraint(
                     self.t[j_1, s, "out"]
-                    + M * (1 - self.y[j, j_1, s])
+                    + self.M * (1 - self.y[j, j_1, s])
                     - self.t[j, s, "out"]
                     >= self.tau_pass[j, s, s_next],
                     ctname=f"min_headway_ilp_{j}_{j_1}_{s}_{s_next}",
@@ -432,7 +450,7 @@ class TR_cplex(AbstractModel):
         for (j, j_1), tups in self.J_d.items():
             for s, s_next in tups:
                 condition = (
-                    t[j_1, s, "out"] + M * (1 - y[j, j_1, s]) - t[j, s, "out"]
+                    t[j_1, s, "out"] + self.M * (1 - y[j, j_1, s]) - t[j, s, "out"]
                     >= self.tau_pass[j, s, s_next]
                 )
                 if not condition:
@@ -447,7 +465,7 @@ class TR_cplex(AbstractModel):
         for (j, j_1), tups in self.J_o.items():
             for s, s_next in tups:
                 self._model.add_constraint(
-                    self.t[j_1, s_next, "out"] + M * (1 - self.z[j, j_1, (s, s_next)])
+                    self.t[j_1, s_next, "out"] + self.M * (1 - self.z[j, j_1, (s, s_next)])
                     >= self.t[j, s_next, "in"],
                     ctname=f"single_track_ilp_{j}_{j_1}_{(s,s_next)}",
                 )
@@ -458,7 +476,7 @@ class TR_cplex(AbstractModel):
         for (j, j_1), tups in self.J_o.items():
             for s, s_next in tups:
                 condition = (
-                    t[j_1, s_next, "out"] + M * (1 - z[j, j_1, s, s_next])
+                    t[j_1, s_next, "out"] + self.M * (1 - z[j, j_1, s, s_next])
                     >= t[j, s_next, "in"]
                 )
             if not condition:

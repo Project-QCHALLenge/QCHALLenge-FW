@@ -25,5 +25,5 @@ class TLEvaluation(AbstractEvaluation):
         if infeasible:
             return -1
         else:
-            return int(objective)
+            return int(round(objective))
 

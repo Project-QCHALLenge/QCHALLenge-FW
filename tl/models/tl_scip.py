@@ -190,6 +190,20 @@ class TLD2D_Scip(Tl2D_Generic, AbstractModel):
 
     def solve(self, **config):
         self.optimize(**config)
+        if self.model.getStatus() != "infeasible":
+            solution_object = self.generate_solution_overview()
+            answer = {}
+            answer["energy"] = solution_object.energy
+            answer["runtime"] = solution_object.runtime
+            answer["converted solution"] = None
+            answer["optimality_gap"] = solution_object.gap_to_optimal
+            answer["solution"] = {"model_name": self.model_name, "num_vars": solution_object.num_vars,
+                                  "solution":solution_object.selected_boxes}
+            answer["info"] = solution_object
+
+            return answer
+        return None
+
 
     def optimize(self, **config):
         if "TimeLimit" in config:

@@ -378,6 +378,18 @@ class TL2D_Qubo(Tl2D_Generic, AbstractModel):
     def solve(self, solve_func, **config):
         self.optimize(solve_func=solve_func, **config)
 
+        solution_object = self.generate_solution_overview()
+        answer = {}
+        answer["energy"] = solution_object.energy
+        answer["runtime"] = solution_object.runtime
+        answer["converted solution"] = None
+        answer["optimality_gap"] = solution_object.gap_to_optimal
+        answer["solution"] = {"model_name": self.model_name, "num_vars": solution_object.num_vars,
+                                  "solution":solution_object.selected_boxes}
+        answer["info"] = solution_object
+
+        return answer
+
     def optimize(self, solve_func, **config):
 
         lagrange_multiplier = config.get("lagrange_multiplier", 10)

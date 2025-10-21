@@ -23,7 +23,7 @@ class QuboPAS(AbstractModel):
         # job inherent value term
         self.alpha: float = pas_data.alpha
         # Beta parameter is the scaling between the normalization term and the job inherent value term
-        self.beta: float = 1.0
+        self.beta: float = pas_data.beta
         # How much every job takes
         self.processing_times: list[int] = pas_data.processing_times
         # Setup time: for each pair of variables is a j x j matrix - s[i][j] is the setup time from job i to job j
@@ -54,29 +54,53 @@ class QuboPAS(AbstractModel):
 
 
         # Set the penalty values for the constraints:
-        self.lambda_3: float = self._calculate_lambda_3()
         self.lambda_4: float = self._calculate_lambda_4()
-        self.lambda_5: float = self._calculate_lambda_5()
+        # offset since c_4 rewards 111111 solution
+        self.lambda_3: float = self._calculate_lambda_3() + self.lambda_4
+        self.lambda_5: float = self._calculate_lambda_5() #+ self.lambda_4
         # The model in this case is a QUBO matrix
         self.model = self.build_model()
 
 
+    def _each_job_can_be_scheduled_on_all_machines(self):
+        return all([machines == self.eligible_machines[0] for machines in self.eligible_machines])
 
     def _calculate_lambda_3(self) -> float:
         """
         When doing two jobs at the same time, we would have in worst case one set up times less.
         So we need to use the maximal set up time + 1 to find better solutions with this constraint in any case.
         """
+        # x_m_t_j appears twice in setup times objective
+        lambda_setup_times = (2 * np.amax(self.setup_times) + 1)
 
-        return np.amax(self.setup_times) + 1
+        """ 
+        If we only consider normalization objective, PAS can be reduced to LB, 
+        so penalties here are equivalent to penalties in LB
+        """
+
+        """
+        Adding one double job can introduce at most max processing time
+        Number of jobs per slot are coupled hence #slot * max p
+        """
+
+        if not self._each_job_can_be_scheduled_on_all_machines():
+            lambda_normalization = (max(self.processing_times) * sum(self.processing_times)
+                                    - max(self.processing_times)**2) + 1
+        else:
+            lambda_normalization = 4*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times) + 1
+
+        return self.job_values.max() + 1 +   self.alpha * lambda_setup_times + self.beta * lambda_normalization
 
     def _calculate_lambda_4(self) -> float:
         """
         When leaving out a step, there would be one set up time less. We have to add 1 to have the constraint stronger
         in any case.
         """
+        """
+        Similar to lambda_3, each x_m_t_j appears twice in setup times 
+        """
 
-        return np.amax(self.setup_times) + 1
+        return  2 * self.alpha * np.amax(self.setup_times) + 0* self.beta * (2 * sum(self.processing_times) + 2)
 
     def _calculate_lambda_5(self) -> float:
         """
@@ -87,8 +111,18 @@ class QuboPAS(AbstractModel):
         With objective 3 (normalization) not doing a job gets an additional benefit of in worst case max(p[j])**2
         where p is the array of processing times.
         """
+        """ 
+        If we only consider normalization objective, PAS can be reduced to LB, 
+        so penalties here are equivalent to penalties in LB
+        """
 
-        return self.alpha * np.amax(self.job_values) + 2 * np.amax(self.setup_times) + (self.beta * np.max(self.processing_times)) ** 2 + 400
+        if not self._each_job_can_be_scheduled_on_all_machines():
+            lambda_normalization = (max(self.processing_times) * sum(self.processing_times)
+                                    - max(self.processing_times)**2) + 1
+        else:
+            lambda_normalization = 1 + 4*sum(self.processing_times) * max(self.processing_times) / len(self.processing_times)
+
+        return self.job_values.max()+ 1 + self.alpha * 2 * np.amax(self.setup_times) + self.beta * lambda_normalization
 
     def build_model(
             self,
@@ -101,7 +135,7 @@ class QuboPAS(AbstractModel):
         np.fill_diagonal(Q, diag)
 
         # Add the second objective related to the setup times (minimize setup times)
-        Q += self._objective_setup_times()
+        Q +=  self.alpha *self._objective_setup_times()
 
         # Add the third objective related to the normalization (maximize job values)
         Q += self._objective_normalization()
@@ -145,7 +179,7 @@ class QuboPAS(AbstractModel):
         diag = np.zeros(self._q)
         for job in range(self.j):
             for machine in self.eligible_machines[job]:
-                penalty = -self.alpha * self.job_values[job][machine]
+                penalty = -self.job_values[job][machine]
                 diag[
                     self.jmn_to_q(job, machine, 0): self.jmn_to_q(
                         job, machine, self._jobs_per_machine[machine]
@@ -210,17 +244,34 @@ class QuboPAS(AbstractModel):
         return constraint_3
 
 
+    def c4_no_timesteps_skipped_new(self) -> npt.NDArray:
+        constraint_4 = np.zeros((self._q, self._q))
+        for m in range(self.m):
+            # iterator should be only till self._n_machines[0] - 1
+            for t in range(1, self._jobs_per_machine[m]):
+                for job1, job2 in itertools.product(self._machine_jobs[m], self._machine_jobs[m]):
+                    if job1 < job2:
+                        constraint_4[self.jmn_to_q(job1, m, t-1)][self.jmn_to_q(job2, m, t - 1)] += self.lambda_4
+                        constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job2, m, t)] += self.lambda_4
+                    if job1 == job2:
+                        constraint_4[self.jmn_to_q(job1, m, t - 1)][self.jmn_to_q(job1, m, t)] += self.lambda_4
+                        constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job1, m, t )] += self.lambda_4
+                    constraint_4[self.jmn_to_q(job1, m, t)][self.jmn_to_q(job2, m, t - 1)] -= self.lambda_4
+        return constraint_4
+
     def c4_no_timesteps_skipped(self) -> npt.NDArray:
         constraint_4 = np.zeros((self._q, self._q))
         for m in range(self.m):
             # iterator should be only till self._n_machines[0] - 1
             for n in range(self._jobs_per_machine[m] - 1):
                 for job1, job2 in itertools.combinations_with_replacement(self._machine_jobs[m], 2):
-                    constraint_4[self.jmn_to_q(job1, m, n)][self.jmn_to_q(job2, m, n + 1)] -= self.lambda_4
-                    constraint_4[self.jmn_to_q(job1, m, n + 1)][self.jmn_to_q(job2, m, n)] -= self.lambda_4
+                    if job1 != job2:
+                        constraint_4[self.jmn_to_q(job1, m, n)][self.jmn_to_q(job2, m, n + 1)] -= self.lambda_4
+                        constraint_4[self.jmn_to_q(job1, m, n + 1)][self.jmn_to_q(job2, m, n)] -= self.lambda_4
                 for job in self._machine_jobs[m]:
                     constraint_4[self.jmn_to_q(job, m, n + 1)][self.jmn_to_q(job, m, n + 1)] += self.lambda_4
         return constraint_4
+
 
     def decode_solution(
             self,

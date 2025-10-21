@@ -7,6 +7,7 @@ import random
 from sp.models.sp_gurobi import SPGurobi
 import itertools
 import numpy as np
+from gurobipy import GRB
 
 
 class MyTestCase(unittest.TestCase):
@@ -20,10 +21,12 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, 0)] # Central verted
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(1, number_of_vertices+1)]
         model = SPGurobi(mock_data)
+        model.model.setParam("TimeLimit", 300)
         model.model.Params.LogToConsole = 1
         model.model.Params.OutputFlag = 1
         model.solve()
         objective_value = model.model.objVal
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(objective_value, 1)  # add assertion here
 
     def test_path_graph(self):
@@ -38,10 +41,12 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 0]
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(number_of_vertices) if x % 2 == 1]
         model = SPGurobi(mock_data)
+        model.model.setParam("TimeLimit", 300)
         model.model.Params.LogToConsole = 1
         model.model.Params.OutputFlag = 1
         model.solve()
         objective_value = model.model.objVal
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(objective_value, optimal_number_of_selected_indices)  # add assertion here
 
     def test_pathological_path_graph(self):
@@ -58,13 +63,15 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 1]
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(number_of_vertices) if x % 2 == 0]
         model = SPGurobi(mock_data)
+        model.model.setParam("TimeLimit", 300)
         model.model.Params.LogToConsole = 1
         model.model.Params.OutputFlag = 1
         model.solve()
         objective_value = model.model.objVal
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(objective_value, optimal_number_of_selected_indices)  # add assertion here
 
-    def test_k_m_m_bipartite_graph(self):
+    def test_m_m_bipartite_graph(self):
         number_of_vertices = random.randint(3, 25)
         a_degree = random.randint(1, math.floor(number_of_vertices/2))
         edges = []
@@ -94,9 +101,11 @@ class MyTestCase(unittest.TestCase):
         model = SPGurobi(mock_data)
         model.model.Params.LogToConsole = 1
         model.model.Params.OutputFlag = 1
+        model.model.setParam("TimeLimit", 300)
         model.solve()
         objective_value = model.model.objVal
         lower_bound = np.floor(number_of_vertices / a_degree)
+        self.assertNotEqual(model.model.status, GRB.TIME_LIMIT)
         self.assertGreaterEqual(objective_value, lower_bound)  # add assertion here
 
 if __name__ == '__main__':

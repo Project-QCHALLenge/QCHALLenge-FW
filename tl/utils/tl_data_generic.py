@@ -32,6 +32,11 @@ class TruckLoadingData(AbstractData):
         self.truck_height = truck_parameters.truck_height
         self.truck_capacity = truck_parameters.truck_capacity
         self.boxes = boxes
+        self.calculate_area_and_volume()
+
+    def calculate_area_and_volume(self):
+        self.boxes["area"] = self.boxes["width"] * self.boxes["length"]
+        self.boxes["volume"] = self.boxes["width"] * self.boxes["length"] * self.boxes["height"]
 
     @staticmethod
     def generate_box(

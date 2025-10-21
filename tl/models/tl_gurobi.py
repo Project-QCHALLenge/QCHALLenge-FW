@@ -20,6 +20,12 @@ class TLD2D_Gurobi(Tl2D_Generic, AbstractModel):
 
     def __init__(self, data):
         super().__init__(data)
+
+        if data.truck_width > data.truck_length:
+            old_width = data.truck_width
+            data.truck_width = data.truck_length
+            data.truck_length = old_width
+
         self.model = self.build_model()
 
     def solve(self, **params):
@@ -209,10 +215,10 @@ class TLD2D_Gurobi(Tl2D_Generic, AbstractModel):
         self, model, x, x_length, u, y, y_length, v, data
     ):
 
-        model.addConstrs(
+        model.addConstrs((
             x_length[i] + x[i] <= x[j] + (1 - u[i, j]) * data.truck_length
             for i, j in u.keys()
-        )
+        ))
 
         model.addConstrs(
             y_length[i] + y[i] <= y[j] + (1 - v[i, j]) * data.truck_length

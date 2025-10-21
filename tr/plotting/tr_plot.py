@@ -21,14 +21,20 @@ class TRPlot(AbstractPlot):
         self.t_max = int(max(self.vars.values()))
         self.time_dict_for_step: dict = self.build_timedict(self.clean)
         self.current_plot = None
-        self.current_t = 0 
+        self.current_t = 0
+
+    @staticmethod
+    def __find_station_by_string(string, stations):
+        for index, entry in enumerate(stations):
+            if str(entry) == string:
+                return list(stations)[index]
 
     def _clean_solution(self, vars):
         clean = []
         check = []
         for (j, s, status), t in self.vars.items():
+            s = TRPlot.__find_station_by_string(s, self.railnet.network.nodes)
             if [j, s, t] in check:
-
                 if status == "out":
                     clean.remove([int(j), s, "in", t])
                     clean.append([int(j), s, status, t])

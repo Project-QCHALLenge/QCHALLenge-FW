@@ -24,7 +24,11 @@ class MPLEvaluation(AbstractEvaluation):
             self.solution = self.create_solution_df()
         else:
             self.solution = self.get_solution_reduced()
-        self.solution_feasible = self.check_solution_feasible()
+
+        try:
+            self.solution_feasible = self.check_solution_feasible()
+        except NotImplementedError:
+            self.solution_feasible = None
 
     def check_solution_type(self):
         for key in self.solution_dict:
@@ -122,7 +126,7 @@ class MPLEvaluation(AbstractEvaluation):
                 job_nr = (j-2*self.n_A_jobs)%self.n_B_jobs
                 jobname = f'Job {job_nr + self.n_A_jobs}'
                 job_type = f'B{job_nr}'
-            process = f"Keep-Job {job_type}" if from_to == "from" else f"Lift-Job {job_type}"
+            process = f"Lift-Job {job_type}" if from_to == "from" else f"Keep-Job {job_type}"
             temp_df = pd.DataFrame([dict(
                 JobName=jobname, 
                 Process=process, 
@@ -206,46 +210,12 @@ class MPLEvaluation(AbstractEvaluation):
     
     def get_objective(self):
         return self.solution['Finish'].max()
-    
 
-    # def get_objective(self):
-    #     u_keys_with_ones = [int(key.split('_')[1]) for key, value in self.solution_dict.items() if key.startswith('u_') and value == 1]
-    #     if u_keys_with_ones:
-    #         return max(u_keys_with_ones) + 1
-    #     else:
-    #         return -1
-        
     def check_constraint(self, constraint):
-        fulfilled = True
-        return constraint, fulfilled
-
-    # def check_constraint(self, constraint):
-    #     fulfilled = True
-    #     constraints_list = [constraint]
-    #     submodel = MPLGurobiWaitOverlap(self.data)
-    #     submodel.build_model_selected_constraints(constraints_list, self.prelim_schedule)
-    #     answer = submodel.solve()
-    #     sub_status = answer["status"]
-    #     # new submodel consisting of constraint plus solution not feasible, therefore constraint not fulfilled
-    #     if sub_status == 3:
-    #         fulfilled = False
-
-    #     return constraint, fulfilled
-
+        raise NotImplementedError
 
     def check_solution(self):
-        constraints_list = list(range(1, 11))
-        constraints_status = dict()
-        for constraint in constraints_list:
-            _, fulfilled = self.check_constraint(constraint)
-            constraint_key = f"constraint {constraint}"
-            if fulfilled:
-                constraints_status[constraint_key] = []
-            else:
-                constraints_status[constraint_key] = [1]
-
-        return constraints_status
-
+        raise NotImplementedError
 
     def get_solution(self):
         return self.solution

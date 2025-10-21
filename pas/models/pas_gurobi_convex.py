@@ -57,11 +57,12 @@ class GurobiConvexPAS(AbstractModel):
         '''
         keys = [(machine, job) for machine in range(n_machines) for job in eligible_jobs[machine]]
         upper_bounds = {(machine, job): np.sum(processing_times[eligible_jobs[machine]]) for machine, job in keys}
+
         variables = {}
         for machine, job in keys:
             variables[machine, job] = model.addVar(
                 vtype=gp.GRB.CONTINUOUS, 
-                lb=0, 
+                lb= processing_times[job],
                 ub=upper_bounds[machine, job], 
                 name=f'c_{machine}_{job}'
             )
@@ -182,7 +183,7 @@ class GurobiConvexPAS(AbstractModel):
         processing_times: np.array
     ):
         model.addConstr(
-            gp.quicksum(processing_times_variables.values()) == np.sum(processing_times)
+            gp.quicksum(processing_times_variables.values()) >= np.sum(processing_times), name="CuttingPlane"
         )
 
 
@@ -250,12 +251,19 @@ class GurobiConvexPAS(AbstractModel):
         objective_normalization = self._objective_normalization(processing_times_variables) if problem_typ == 'standard' else self._objective_normalization_approximation(model, processing_times_variables, n_machines, np.sum(processing_times))
         objective_setup_times = self._objective_setup_times(routing_variables, setup_times)
         objective_value = self._objective_value(routing_variables, job_values)
-        model.setObjective(objective_setup_times+objective_normalization+objective_value)
+        model.setObjective(self.data.alpha * objective_setup_times + self.data.beta * objective_normalization+objective_value)
 
         model.update()
 
         return model, routing_variables, capacity_variables, processing_times_variables
     
+
+    def dbg_remove(self, solution):
+        for var in solution:
+            variable = self.model.getVarByName(var)
+            self.model.addConstr((variable == 1), name="FORCE")
+
+
     @classmethod
     def construct_sequences(
         cls,

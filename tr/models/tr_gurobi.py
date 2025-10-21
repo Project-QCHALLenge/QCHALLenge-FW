@@ -15,11 +15,17 @@ from transformations.from_cplex import FromCPLEX
 
 class GurobiTR(TR_cplex, AbstractModel):
 
-    def __init__(self, data: TRData):
-        super().__init__(data)
+    def __init__(self, data: TRData, compute_m=True):
+        super().__init__(data, compute_m=compute_m)
 
         self._grb_model = FromCPLEX(self._model).to_gurobi()
         self._bqm, self._inverter = FromCPLEX(self._model).to_bqm()
+
+    def set_dmax(self):
+        self.data.railnet.dmax = self._d_max + 1
+        self.__init__(
+            self.data, self.compute_m
+        )  # or rebuild self.t which is probably the correct way to do it
 
     def solve(self, **config):
         TimeLimit = config.get("TimeLimit", 30)
@@ -28,6 +34,12 @@ class GurobiTR(TR_cplex, AbstractModel):
         start_time = time.perf_counter()
         self._grb_model.optimize()
         runtime = time.perf_counter() - start_time
+
+        if self._grb_model.status == GRB.INFEASIBLE:
+            print(f"Unable to solve: increasing dmax to {self._d_max + 1}")
+            self.set_dmax()
+            return self.solve()
+
 
         solution = {}
         for var in self._grb_model.getVars():
@@ -95,6 +107,11 @@ class GurobiTR(TR_cplex, AbstractModel):
         start_time = time.perf_counter()
         gm.optimize()
         runtime = time.perf_counter() - start_time
+
+        if gm.status == GRB.INFEASIBLE:
+            print(f"Unable to solve: increasing dmax to {self._d_max + 1}")
+            self.set_dmax()
+            return self.solve_bqm()
 
         bqm_solution = {k: int(round(v.X)) for k, v in vardict.items()}
 

@@ -7,6 +7,7 @@ import random
 from sp.models.sp_cplex import CPlexSP
 import itertools
 import numpy as np
+from sp.evaluation.evaluation import SPEvaluation
 
 
 class MyTestCase(unittest.TestCase):
@@ -20,8 +21,10 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, 0)] # Central verted
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(1, number_of_vertices+1)]
         model = CPlexSP(mock_data)
+        model.model.set_time_limit(300)
         model.solve()
         objective_value = model.model.objective_value
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(objective_value, 1)  # add assertion here
 
     def test_path_graph(self):
@@ -36,8 +39,10 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 0]
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(number_of_vertices) if x % 2 == 1]
         model = CPlexSP(mock_data)
+        model.model.set_time_limit(300)
         model.solve()
         objective_value = model.model.objective_value
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(objective_value, optimal_number_of_selected_indices)  # add assertion here
 
     def test_pathological_path_graph(self):
@@ -54,11 +59,13 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = [(0, 0, 0, 0, x) for x in range(number_of_vertices) if x % 2 == 1]
         mock_data.listStreetPoints = [(0,0,0,0,x) for x in range(number_of_vertices) if x % 2 == 0]
         model = CPlexSP(mock_data)
+        model.model.set_time_limit(300)
         model.solve()
         objective_value = model.model.objective_value
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertEqual(objective_value, optimal_number_of_selected_indices)  # add assertion here
 
-    def test_k_m_m_bipartite_graph(self):
+    def test_m_m_bipartite_graph(self):
         number_of_vertices = random.randint(3, 25)
         a_degree = random.randint(1, math.floor(number_of_vertices/2))
         edges = []
@@ -86,9 +93,11 @@ class MyTestCase(unittest.TestCase):
         mock_data.listLidar = a_vertices
         mock_data.listStreetPoints = b_vertices
         model = CPlexSP(mock_data)
+        model.model.set_time_limit(300)
         model.solve()
         objective_value = model.model.objective_value
         lower_bound = np.floor(number_of_vertices / a_degree)
+        self.assertNotEqual(model.model.solve_details.status_code, 107)
         self.assertGreaterEqual(objective_value, lower_bound)  # add assertion here
 
 if __name__ == '__main__':
