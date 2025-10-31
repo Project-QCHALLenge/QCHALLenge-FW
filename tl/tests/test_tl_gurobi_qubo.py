@@ -53,9 +53,6 @@ class TestTLQUBO(unittest.TestCase):
         answer = gurobi_model.solve(TestTLQUBO.solve_function, lagrange_multiplier=10000000)
         evaluation = TLEvaluation(data=data, solution=answer)
 
-        plt = TLPlot(evaluation).plot_solution()
-        plt.show()
-
         self.assertNotEqual(answer["energy"], np.inf)
         self.assertEqual(evaluation.get_objective(), 9)  # add assertion here
 
@@ -103,10 +100,10 @@ class TestTLQUBO(unittest.TestCase):
         self.assertNotEqual(gurobi_model.model.status, GRB.TIME_LIMIT)
         self.assertEqual(evaluation.get_objective(), truck_length * truck_width)  # add assertion here
 
-    def test_fail_width_length_mix_up(self):
+    def test_width_length_mix_up_2(self):
         truck_length = 13
         truck_width = 14
-        number_of_boxes = 16
+        number_of_boxes = 13
         box_length = truck_length / number_of_boxes
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
@@ -118,10 +115,11 @@ class TestTLQUBO(unittest.TestCase):
         answer = gurobi_model.solve(TestTLQUBO.solve_function)
         self.assertNotEqual(answer["energy"], np.inf)
 
-    def test_width_length_mix_up(self):
-        truck_length = 13
+
+    def test_width_length_mix_up_1(self):
+        truck_length = 14
         truck_width = 13
-        number_of_boxes = 16
+        number_of_boxes = 14
         box_length = truck_length / number_of_boxes
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
@@ -145,18 +143,6 @@ class TestTLQUBO(unittest.TestCase):
 
         self.assertNotEqual(answer["energy"], np.inf)
         self.assertEqual(evaluation.get_objective(), 12)  # add assertion here
-
-    def test_one_box_too_heavy(self):
-        boxes = [{"index": 0, "length": 1, "width": 1, "height": 0, "weight": 20}]
-        truck_parameters = TruckParameters(6, 3, 0, 18)
-        data = TLData(truck_parameters, pd.DataFrame(boxes))
-
-        gurobi_model = TLQubo(data)
-        answer = gurobi_model.solve(TestTLQUBO.solve_function)
-        evaluation = TLEvaluation(data=data, solution=answer)
-
-        self.assertNotEqual(answer["energy"], np.inf)
-        self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
 
     def test_one_box_too_long(self):

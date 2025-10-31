@@ -611,7 +611,7 @@ class TL2D_Qubo(Tl2D_Generic, AbstractModel):
                 if self.best_sample[y_var] == 1:
                     y_coord = j
 
-                if x_coord > 0 and y_coord > 0:
+                if x_coord >= 0 and y_coord >= 0:
                     selected_boxes[i] = {
                         "x_coord": x_coord,
                         "y_coord": y_coord,

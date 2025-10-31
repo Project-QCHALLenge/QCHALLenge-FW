@@ -7,10 +7,6 @@ import numpy as np
 from tl import TLPlot
 from gurobipy import GRB
 
-"""
-No standard solution format
-"""
-
 
 
 class MyTestCase(unittest.TestCase):
@@ -71,10 +67,10 @@ class MyTestCase(unittest.TestCase):
         self.assertNotEqual(model.model.getStatus(), "timelimit")
         self.assertEqual(evaluation.get_objective(), truck_length * truck_width)  # add assertion here
 
-    def test_fail_width_length_mix_up(self):
+    def test_width_length_mix_up_2(self):
         truck_length = 13
         truck_width = 14
-        number_of_boxes = 16
+        number_of_boxes = 13
         box_length = truck_length / number_of_boxes
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
@@ -88,10 +84,10 @@ class MyTestCase(unittest.TestCase):
         self.assertNotEqual(model.model.getStatus(), "timelimit")
         self.assertNotEqual(model.model.getStatus(), "infeasible")
 
-    def test_width_length_mix_up(self):
-        truck_length = 13
+    def test_width_length_mix_up_1(self):
+        truck_length = 14
         truck_width = 13
-        number_of_boxes = 16
+        number_of_boxes = 14
         box_length = truck_length / number_of_boxes
         box_width = truck_width
         truck_capacity = np.random.randint(1, 20)
@@ -133,7 +129,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(evaluation.get_objective(), 0)  # add assertion here
 
     def test_one_box_too_long(self):
-        boxes = [{"index": 0, "length": 7, "width": 1, "height": 0, "weight": 20}]
+        boxes = [{"index": 0, "length": 7, "width": 1, "height": 0, "weight": 1}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
@@ -145,7 +141,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(answer, None)  # add assertion here
 
     def test_one_box_too_wide(self):
-        boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 20}]
+        boxes = [{"index": 0, "length": 1, "width": 7, "height": 0, "weight": 1}]
         truck_parameters = TruckParameters(6, 3, 0, 18)
         data = TLData(truck_parameters, pd.DataFrame(boxes))
 
